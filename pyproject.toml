@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dog_bark"
+version = "0.0.1"
+description = "A package to see Watson's barks"
+authors = [
+  { name = "Malcolm Mielle", email = "malcolm.mielle@gmail.com" },
+]
+readme = "README.md"
+dependencies = [
+  "Wave>=0.0.2",
+  "matplotlib>=3.3.4",
+  "numpy>=1.22.1",
+]
+
+[project.urls]
+Home = "https://github.com/SchindlerReGIS/team"
