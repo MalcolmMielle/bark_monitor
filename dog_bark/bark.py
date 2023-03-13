@@ -1,5 +1,4 @@
 import wave
-from typing import Optional
 
 import numpy as np
 
@@ -19,3 +18,16 @@ class Bark:
         if step > 1:
             self._step = step
             self.signal_array = self.signal_array[:: self._step]
+
+    def time_spent_barking(self, threshold: float = 4000) -> float:
+        """Give the time the dog spend barking based on sound intensity.
+
+        Barking is any point in `self._signal_array_raw` were the signal goes above
+        `threshold`.
+
+        :return: the time spent barking in seconds
+        """
+        loud_noise = self.signal_array[self.signal_array > threshold]
+        loud_noise_neg = self.signal_array[self.signal_array < -threshold]
+        samples = (len(loud_noise) + len(loud_noise_neg)) * self._step
+        return samples / self._wav_obj.getframerate()
