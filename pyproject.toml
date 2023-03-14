@@ -13,7 +13,8 @@ readme = "README.md"
 dependencies = [
   "Wave>=0.0.2",
   "matplotlib>=3.3.4",
-  "numpy>=1.22.1",
+  "numpy>=1.20.0",
+  "pandas >= 1.4.2"
 ]
 
 [project.urls]

@@ -8,9 +8,9 @@ from dog_bark.bark import Bark
 def plot_bark(bark: Bark, to_file: bool = False) -> None:
     plt.style.use("seaborn-colorblind")
     fig, ax = plt.subplots()
-    ax.plot(bark.signal_array)
-    ax.set_title("Left Channel")
-    ax.set_ylabel("Signal Value")
+    ax.plot(bark.times, bark.amplitude_envelope)
+    ax.set_title("Bark times")
+    ax.set_ylabel("Amplitude")
     ax.set_xlabel("Time (s)")
 
     if not to_file:
