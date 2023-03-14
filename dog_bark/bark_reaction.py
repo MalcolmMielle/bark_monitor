@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import numpy as np
+from playsound import playsound
 
 
 class BarkReaction:
@@ -14,4 +17,4 @@ class BarkReaction:
 
     def react(self, signal: bytes) -> None:
         if self.is_bark(signal):
-            print("BARK")
+            playsound(Path("sounds", "calm.wav").resolve())
