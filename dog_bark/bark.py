@@ -48,3 +48,7 @@ class Bark:
         loud_noise = self.amplitude_envelope[self.amplitude_envelope > 0]
         samples = len(loud_noise) * self._step
         return samples / self._wav_obj.getframerate()
+
+    @property
+    def bark_times(self):
+        return self.times[self.amplitude_envelope > 0]

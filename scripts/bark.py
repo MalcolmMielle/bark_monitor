@@ -16,7 +16,10 @@ def main():
     args = parser.parse_args()
 
     bark = Bark(args.filename, args.step)
+
     print(datetime.timedelta(seconds=bark.time_spent_barking))
+    print(bark.bark_times)
+
     plot_bark(bark)
 
 
