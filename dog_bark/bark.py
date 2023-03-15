@@ -1,3 +1,4 @@
+import datetime
 import wave
 
 import numpy as np
@@ -50,5 +51,15 @@ class Bark:
         return samples / self._wav_obj.getframerate()
 
     @property
-    def bark_times(self):
+    def bark_times(self) -> np.ndarray:
         return self.times[self.amplitude_envelope > 0]
+
+    def __str__(self) -> str:
+        return (
+            "File: "
+            + self.file_name
+            + "\ntime barking: "
+            + str(datetime.timedelta(seconds=self.time_spent_barking))
+            + "\nbarked at: "
+            + str(self.bark_times)
+        )

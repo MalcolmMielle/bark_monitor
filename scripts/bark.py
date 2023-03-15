@@ -1,5 +1,4 @@
 import argparse
-import datetime
 
 from dog_bark.bark import Bark
 from dog_bark.plot.plot_bark import plot_bark
@@ -20,9 +19,7 @@ def main():
 
     bark = Bark(args.filename, args.step)
 
-    print(datetime.timedelta(seconds=bark.time_spent_barking))
-    print(bark.bark_times)
-
+    print(bark)
     plot_bark(bark)
 
 
