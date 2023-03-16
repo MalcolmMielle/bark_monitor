@@ -1,6 +1,7 @@
 import threading
 import wave
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Callable, Optional
 
 import numpy as np
@@ -23,6 +24,8 @@ class Recorder:
         self._channels = 1
         self._fs = 44100
         self.filename = filename
+        if not Path(filename).parent.exists():
+            Path(filename).parent.mkdir()
 
         self._frames = []  # Initialize array to store frames
         self._running = False
