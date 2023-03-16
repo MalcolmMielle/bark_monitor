@@ -1,5 +1,7 @@
 # Bark monitor
 
+![](images/watson.jpg)
+
 Showing my neighbor my dog doesn't bark.
 
 ## Introduction
@@ -8,6 +10,12 @@ Do you also have neighbor who accuses your dog of barking all the time, want to 
 Do you want to know if your dog is actually noisy when you are gone but you don't (and don't want to buy) a baby cam?
 
 Then this project is for you!
+
+## Install
+
+`pip install -e .`
+
+Tested with python 3.9, should work with higher versions too.
 
 ## How to use the bark monitor
 
@@ -19,8 +27,17 @@ The bark monitor will:
 
 To setup the program:
 
-1. Create a Telegram bot and obtain the api key.
+1. Create a [Telegram bot](https://www.rowy.io/blog/create-telegram-bot) and obtain the api key.
 2. Add the api key to a file in the root folder named `api_key`.
-3. Start the program by running `scripts/record.py`.
+3. Start the program by running `python3 scripts/record.py`.
 
 See in the file `bark_monitor/very_bark_bot.py` to see the commands available to the bot.
+
+## Contributions
+
+Contributions are always welcome to help show my neighbor is wrong!
+
+Code submitted should be formatted with [black](https://pypi.org/project/black/) and pass `flake8 .` with no errors.
+All methods should be type hinted and return types should always be present even when it's `None`.
+
+If possible, submit unit tests and a picture of your dog with your PR (I also accept cat pictures as payments).
