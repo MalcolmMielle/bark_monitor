@@ -1,7 +1,7 @@
 import threading
 import wave
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Callable, Optional
 
 import numpy as np
 import pyaudio
@@ -11,7 +11,13 @@ class Recorder:
     _pyaudio: pyaudio.PyAudio
     _stream: pyaudio.Stream
 
-    def __init__(self, filename: str, bark_level: int, bark_func) -> None:
+    def __init__(
+        self,
+        filename: str,
+        bark_level: int,
+        bark_func: Callable[[int], None],
+        stop_bark_func: Callable[[timedelta], None],
+    ) -> None:
         self._chunk = 1024  # Record in chunks of 1024 samples
         self._sample_format = pyaudio.paInt16  # 16 bits per sample
         self._channels = 1
@@ -25,6 +31,7 @@ class Recorder:
 
         self.is_paused = False
         self.bark_func = bark_func
+        self.stop_bark_func = stop_bark_func
 
         self._pyaudio = pyaudio.PyAudio()  # Create an interface to PortAudio
         self._stream = self._pyaudio.open(
@@ -38,11 +45,12 @@ class Recorder:
         self._t: Optional[threading.Thread] = None
 
         self._last_bark = datetime.now()
+        self.total_time_barking = timedelta(seconds=0)
 
-    def stop(self):
+    def stop(self) -> None:
         self._running = False
 
-    def clear(self):
+    def clear(self) -> None:
         # Stop and close the stream
         self._stream.stop_stream()
         self._stream.close()
@@ -59,34 +67,51 @@ class Recorder:
         wf.writeframes(b"".join(self._frames))
         wf.close()
 
-    def _is_bark(self, signal: bytes):
+    def _is_bark(self, signal: bytes) -> tuple[bool, int]:
         np_data = np.frombuffer(signal, dtype=np.int16)
         max_val = np.amax(np_data)
         if max_val >= self._bark_level:
-            return True
-        return False
+            return True, max_val
+        return False, max_val
 
-    def record_thread(self):
+    def record_thread(self) -> None:
         self._t = threading.Thread(target=self.record)
         self._t.start()
 
-    def stop_thread(self):
+    def stop_thread(self) -> None:
         if self._t is None:
             return
         self.stop()
         self._t.join()
 
-    def record(self):
+    def record(self) -> None:
         self._running = True
         print("Recording started")
+
+        barking_start: Optional[datetime] = None
+        is_barking = False
+
         while self._running:
             if not self.is_paused:
                 data = self._stream.read(self._chunk)
                 self._frames.append(data)
-                if self._is_bark(data) and (
-                    datetime.now() - self._last_bark > timedelta(seconds=1)
-                ):
-                    self.bark_func()
-            else:
-                print("is paused")
+                is_bark, intensity = self._is_bark(data)
+                print(intensity)
+
+                # Those two ifs are separated because we also want to trigger when
+                # barking occurs after we have flagged it to only go out when the
+                # barking stops
+                if is_bark:
+                    if not is_barking:
+                        is_barking = True
+                        self.bark_func(intensity)
+                        barking_start = datetime.now()
+                elif is_barking:
+                    is_barking = False
+                    assert barking_start is not None
+                    self.total_time_barking = self.total_time_barking + (
+                        datetime.now() - barking_start
+                    )
+                    self.stop_bark_func(datetime.now() - barking_start)
+                    barking_start = None
         self.clear()
