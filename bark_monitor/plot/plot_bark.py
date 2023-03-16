@@ -2,7 +2,7 @@ import pathlib
 
 import matplotlib.pyplot as plt
 
-from dog_bark.bark import Bark
+from bark_monitor.bark import Bark
 
 
 def plot_bark(bark: Bark, to_file: bool = False) -> None:

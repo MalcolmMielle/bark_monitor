@@ -1,7 +1,7 @@
 import argparse
 
-from dog_bark.bark import Bark
-from dog_bark.plot.plot_bark import plot_bark
+from bark_monitor.bark import Bark
+from bark_monitor.plot.plot_bark import plot_bark
 
 
 def main():

@@ -1,4 +1,4 @@
-from dog_bark.very_bark_bot import VeryBarkBot
+from bark_monitor.very_bark_bot import VeryBarkBot
 
 
 def main():

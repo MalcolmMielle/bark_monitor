@@ -6,9 +6,9 @@ import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-from dog_bark.bark import Bark
-from dog_bark.plot.plot_bark import plot_bark
-from dog_bark.recorder import Recorder
+from bark_monitor.bark import Bark
+from bark_monitor.plot.plot_bark import plot_bark
+from bark_monitor.recorder import Recorder
 
 
 class VeryBarkBot:

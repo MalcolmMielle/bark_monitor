@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dog_bark"
+name = "bark_monitor"
 version = "0.0.1"
 description = "A package to see Watson's barks"
 authors = [
