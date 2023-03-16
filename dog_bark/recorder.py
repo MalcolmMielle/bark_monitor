@@ -1,5 +1,6 @@
 import threading
 import wave
+from datetime import datetime, timedelta
 from typing import Optional
 
 import numpy as np
@@ -35,6 +36,8 @@ class Recorder:
         )
 
         self._t: Optional[threading.Thread] = None
+
+        self._last_bark = datetime.now()
 
     def stop(self):
         self._running = False
@@ -80,7 +83,9 @@ class Recorder:
             if not self.is_paused:
                 data = self._stream.read(self._chunk)
                 self._frames.append(data)
-                if self._is_bark(data):
+                if self._is_bark(data) and (
+                    datetime.now() - self._last_bark > timedelta(seconds=1)
+                ):
                     self.bark_func()
             else:
                 print("is paused")
