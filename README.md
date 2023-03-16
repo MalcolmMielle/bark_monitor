@@ -2,7 +2,7 @@
 
 ![](images/watson.jpg)
 
-Showing my neighbor my dog doesn't bark.
+Showing my neighbor my dog doesn't bark!
 
 ## Introduction
 
