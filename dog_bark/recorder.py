@@ -1,30 +1,30 @@
 import threading
 import wave
+from typing import Optional
 
 import numpy as np
 import pyaudio
-
-from dog_bark.very_bark_bot import VeryBarkBot
 
 
 class Recorder:
     _pyaudio: pyaudio.PyAudio
     _stream: pyaudio.Stream
 
-    def __init__(self, filename: str, bark_level: int) -> None:
+    def __init__(self, filename: str, bark_level: int, bark_func) -> None:
         self._chunk = 1024  # Record in chunks of 1024 samples
         self._sample_format = pyaudio.paInt16  # 16 bits per sample
         self._channels = 1
         self._fs = 44100
-        self._filename = filename
+        self.filename = filename
 
         self._frames = []  # Initialize array to store frames
         self._running = False
 
         self._bark_level = bark_level
-        self._bot = VeryBarkBot()
 
-    def __enter__(self):
+        self.is_paused = False
+        self.bark_func = bark_func
+
         self._pyaudio = pyaudio.PyAudio()  # Create an interface to PortAudio
         self._stream = self._pyaudio.open(
             format=self._sample_format,
@@ -33,19 +33,13 @@ class Recorder:
             frames_per_buffer=self._chunk,
             input=True,
         )
-        return self
 
-    def record(self):
-        self._running = True
-        self._t = threading.Thread(target=self.record_sound)
-        self._t.start()
-        print("Recording started")
-        self._bot.init()
+        self._t: Optional[threading.Thread] = None
 
+    def stop(self):
         self._running = False
-        self._t.join()
 
-    def __exit__(self, exc_type, exc_value, exc_tb):
+    def clear(self):
         # Stop and close the stream
         self._stream.stop_stream()
         self._stream.close()
@@ -55,7 +49,7 @@ class Recorder:
         print("Finished recording")
 
         # Save the recorded data as a WAV file
-        wf = wave.open(self._filename, "wb")
+        wf = wave.open(self.filename, "wb")
         wf.setnchannels(self._channels)
         wf.setsampwidth(self._pyaudio.get_sample_size(self._sample_format))
         wf.setframerate(self._fs)
@@ -65,14 +59,29 @@ class Recorder:
     def _is_bark(self, signal: bytes):
         np_data = np.frombuffer(signal, dtype=np.int16)
         max_val = np.amax(np_data)
-        print(max_val)
         if max_val >= self._bark_level:
             return True
         return False
 
-    def record_sound(self):
+    def record_thread(self):
+        self._t = threading.Thread(target=self.record)
+        self._t.start()
+
+    def stop_thread(self):
+        if self._t is None:
+            return
+        self.stop()
+        self._t.join()
+
+    def record(self):
+        self._running = True
+        print("Recording started")
         while self._running:
-            data = self._stream.read(self._chunk)
-            self._frames.append(data)
-            if self._is_bark(data):
-                self._bot.send_bark()
+            if not self.is_paused:
+                data = self._stream.read(self._chunk)
+                self._frames.append(data)
+                if self._is_bark(data):
+                    self.bark_func()
+            else:
+                print("is paused")
+        self.clear()
