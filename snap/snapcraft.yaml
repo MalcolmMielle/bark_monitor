@@ -1,0 +1,23 @@
+name: bark-monitor
+summary: Monitor your dog's barks
+description: |
+  Monitor your dog's barks
+version: git
+grade: stable
+confinement: devmode
+base: core22
+
+parts:
+  bark-monitor:
+    plugin: python
+    build-packages: [portaudio19-dev, python3-pip] # necessary at build time
+    stage-packages: [libportaudio2, libasound2] # necessary at runtime, pip is not managing non python deps
+    source: .
+    override-build: |
+      python3 -m venv "$CRAFT_PART_INSTALL" # Create a venv in the INSTALL part for staging
+      pip install . # install the pyproject.toml
+      craftctl default # call the default python plugin build part (not going to do much but still necessary for some python3 path)
+
+apps:
+  bark-monitor:
+    command: bin/python3 $SNAP/lib/python3.10/site-packages/scripts/record.py
