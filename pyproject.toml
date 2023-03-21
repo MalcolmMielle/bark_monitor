@@ -23,5 +23,5 @@ dependencies = [
   "scipy >= 1.10.1"
 ]
 
-[project.urls]
-Home = "https://github.com/SchindlerReGIS/team"
+[project.scripts]
+bark-monitor = "scripts.record:main"
