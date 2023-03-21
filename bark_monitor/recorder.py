@@ -9,12 +9,8 @@ import pyaudio
 
 
 class Recorder:
-    _pyaudio: pyaudio.PyAudio
-    _stream: pyaudio.Stream
-
     def __init__(
         self,
-        filename: str,
         bark_level: int,
         bark_func: Callable[[int], None],
         stop_bark_func: Callable[[timedelta], None],
@@ -23,12 +19,9 @@ class Recorder:
         self._sample_format = pyaudio.paInt16  # 16 bits per sample
         self._channels = 1
         self._fs = 44100
-        self.filename = filename
-        if not Path(filename).parent.exists():
-            Path(filename).parent.mkdir()
 
         self._frames = []  # Initialize array to store frames
-        self._running = False
+        self.running = False
 
         self._bark_level = bark_level
 
@@ -36,36 +29,27 @@ class Recorder:
         self.bark_func = bark_func
         self.stop_bark_func = stop_bark_func
 
-        self._pyaudio = pyaudio.PyAudio()  # Create an interface to PortAudio
-        self._stream = self._pyaudio.open(
-            format=self._sample_format,
-            channels=self._channels,
-            rate=self._fs,
-            frames_per_buffer=self._chunk,
-            input=True,
-        )
-
         self._t: Optional[threading.Thread] = None
 
         self._last_bark = datetime.now()
         self.total_time_barking = timedelta(seconds=0)
 
+    @staticmethod
+    def _filename() -> str:
+        now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        filename = str(Path("recordings", now + ".wav"))
+        if not Path(filename).parent.exists():
+            Path(filename).parent.mkdir()
+        return filename
+
     def stop(self) -> None:
-        self._running = False
+        self.running = False
 
-    def clear(self) -> None:
-        # Stop and close the stream
-        self._stream.stop_stream()
-        self._stream.close()
-        # Terminate the PortAudio interface
-        self._pyaudio.terminate()
-
-        print("Finished recording")
-
+    def save_recording(self, sample_width: int) -> None:
         # Save the recorded data as a WAV file
-        wf = wave.open(self.filename, "wb")
+        wf = wave.open(self._filename(), "wb")
         wf.setnchannels(self._channels)
-        wf.setsampwidth(self._pyaudio.get_sample_size(self._sample_format))
+        wf.setsampwidth(sample_width)
         wf.setframerate(self._fs)
         wf.writeframes(b"".join(self._frames))
         wf.close()
@@ -87,34 +71,62 @@ class Recorder:
         self.stop()
         self._t.join()
 
+    def _start_stream(self) -> tuple[pyaudio.PyAudio, pyaudio.Stream]:
+        pyaudio_interface = pyaudio.PyAudio()  # Create an interface to PortAudio
+        stream = pyaudio_interface.open(
+            format=self._sample_format,
+            channels=self._channels,
+            rate=self._fs,
+            frames_per_buffer=self._chunk,
+            input=True,
+        )
+        return pyaudio_interface, stream
+
+    def _stop_stream(
+        self, pyaudio_interface: pyaudio.PyAudio, stream: pyaudio.Stream
+    ) -> None:
+        # Stop and close the stream
+        stream.stop_stream()
+        stream.close()
+        # Terminate the PortAudio interface
+        pyaudio_interface.terminate()
+
     def record(self) -> None:
-        self._running = True
+        pyaudio_interface, stream = self._start_stream()
+
+        self.running = True
         print("Recording started")
 
-        barking_start: Optional[datetime] = None
+        barking_at = datetime.now()
         is_barking = False
 
-        while self._running:
-            if not self.is_paused:
-                data = self._stream.read(self._chunk)
-                self._frames.append(data)
-                is_bark, intensity = self._is_bark(data)
-                print(intensity)
+        while self.running:
+            if self.is_paused:
+                continue
 
-                # Those two ifs are separated because we also want to trigger when
-                # barking occurs after we have flagged it to only go out when the
-                # barking stops
-                if is_bark:
-                    if not is_barking:
-                        is_barking = True
-                        self.bark_func(intensity)
-                        barking_start = datetime.now()
-                elif is_barking:
-                    is_barking = False
-                    assert barking_start is not None
-                    self.total_time_barking = self.total_time_barking + (
-                        datetime.now() - barking_start
-                    )
-                    self.stop_bark_func(datetime.now() - barking_start)
-                    barking_start = None
-        self.clear()
+            data = stream.read(self._chunk)
+            is_bark, intensity = self._is_bark(data)
+
+            # If to check when to record
+            if is_bark or (datetime.now() - barking_at) < timedelta(seconds=1):
+                self._frames.append(data)
+
+            # If to update time and stop recording the bark
+            if is_bark:
+                barking_at = datetime.now()
+                if not is_barking:
+                    is_barking = True
+                    self.bark_func(intensity)
+            elif is_barking and (datetime.now() - barking_at) > timedelta(seconds=1):
+                assert barking_at is not None
+                is_barking = False
+                self.total_time_barking = self.total_time_barking + (
+                    datetime.now() - barking_at
+                )
+                self.stop_bark_func(datetime.now() - barking_at)
+                self.save_recording(
+                    pyaudio_interface.get_sample_size(self._sample_format)
+                )
+                self._frames = []
+
+        self._stop_stream(pyaudio_interface, stream)

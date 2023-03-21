@@ -1,13 +1,9 @@
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Optional
+from datetime import timedelta
 
 import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-from bark_monitor.bark import Bark
-from bark_monitor.plot.plot_bark import plot_bark
 from bark_monitor.recorder import Recorder
 
 
@@ -31,25 +27,27 @@ class VeryBarkBot:
         stop_handler = CommandHandler("stop", self.stop_recorder)
         self.application.add_handler(stop_handler)
 
+        status_handler = CommandHandler("status", self.status)
+        self.application.add_handler(status_handler)
+
         self._bark_level = bark_level
 
-        self.recorder: Optional[Recorder] = None
+        self.recorder = Recorder(self._bark_level, self.send_bark, self.send_end_bark)
         self.application.run_polling()
 
         self.stop_recorder_sync()
-
-    @staticmethod
-    def _filename() -> str:
-        now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        return str(Path("recordings", now + ".wav"))
 
     async def start_recorder(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         assert update.effective_chat is not None
-        self.recorder = Recorder(
-            self._filename(), self._bark_level, self.send_bark, self.send_end_bark
-        )
+        if self.recorder.running:
+            await self.application.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="The program is already recording",
+            )
+            return
+
         self.recorder.record_thread()
         await self.application.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -60,6 +58,13 @@ class VeryBarkBot:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         assert update.effective_chat is not None
+        if self.recorder is None:
+            await self.application.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="The program is already not recording",
+            )
+            return
+
         self.stop_recorder_sync()
         await self.application.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -69,9 +74,7 @@ class VeryBarkBot:
     def stop_recorder_sync(self) -> None:
         if self.recorder is not None:
             self.recorder.stop_thread()
-            bark = Bark(self.recorder.filename, threshold=self._bark_level)
-            print(bark)
-            plot_bark(bark, to_file=True)
+            print("The dog barked for:", self.recorder.total_time_barking)
 
     async def register(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -99,6 +102,22 @@ class VeryBarkBot:
         await self.application.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Recorder unpaused",
+        )
+
+    async def status(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        assert update.effective_chat is not None
+        if not self.recorder.running:
+            await self.application.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="The program is not recording",
+            )
+            return
+        status = "The program is recording"
+        if self.recorder.is_paused:
+            status = "The program is paused"
+        await self.application.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=status,
         )
 
     def send_bark(self, intensity: int) -> None:
