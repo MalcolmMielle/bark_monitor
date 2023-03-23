@@ -7,32 +7,32 @@ from typing import Callable, Optional
 import numpy as np
 import pyaudio
 
+from bark_monitor.recorders.recorder_base import RecorderBase
 
-class Recorder:
+
+class Recorder(RecorderBase):
     def __init__(
         self,
         bark_level: int,
-        bark_func: Callable[[int], None],
-        stop_bark_func: Callable[[timedelta], None],
+        bark_func: Optional[Callable[[int], None]] = None,
+        stop_bark_func: Optional[Callable[[timedelta], None]] = None,
     ) -> None:
+        super().__init__(
+            bark_level=bark_level, bark_func=bark_func, stop_bark_func=stop_bark_func
+        )
+
         self._chunk = 1024  # Record in chunks of 1024 samples
         self._sample_format = pyaudio.paInt16  # 16 bits per sample
         self._channels = 1
         self._fs = 44100
 
         self._frames = []  # Initialize array to store frames
-        self.running = False
-
-        self._bark_level = bark_level
-
-        self.is_paused = False
-        self.bark_func = bark_func
-        self.stop_bark_func = stop_bark_func
 
         self._t: Optional[threading.Thread] = None
 
         self._last_bark = datetime.now()
         self.total_time_barking = timedelta(seconds=0)
+        self._pyaudio_interface = None
 
     @staticmethod
     def _filename() -> str:
@@ -42,33 +42,27 @@ class Recorder:
             Path(filename).parent.mkdir()
         return filename
 
-    def stop(self) -> None:
-        self.running = False
-
-    def save_recording(self, sample_width: int) -> None:
+    def _save_recording(self) -> None:
         # Save the recorded data as a WAV file
+        assert self._pyaudio_interface is not None
         wf = wave.open(self._filename(), "wb")
         wf.setnchannels(self._channels)
-        wf.setsampwidth(sample_width)
+        wf.setsampwidth(self._pyaudio_interface.get_sample_size(self._sample_format))
         wf.setframerate(self._fs)
         wf.writeframes(b"".join(self._frames))
         wf.close()
 
-    def _is_bark(self, signal: bytes) -> tuple[bool, int]:
+    def _signal_to_intensity(self, signal: bytes) -> int:
         np_data = np.frombuffer(signal, dtype=np.int16)
-        max_val = np.amax(np_data)
-        if max_val >= self._bark_level:
-            return True, max_val
-        return False, max_val
+        return np.amax(np_data)
 
-    def record_thread(self) -> None:
-        self._t = threading.Thread(target=self.record)
+    def _record(self) -> None:
+        self._t = threading.Thread(target=self._record_loop)
         self._t.start()
 
-    def stop_thread(self) -> None:
+    def _stop(self) -> None:
         if self._t is None:
             return
-        self.stop()
         self._t.join()
 
     def _start_stream(self) -> tuple[pyaudio.PyAudio, pyaudio.Stream]:
@@ -91,42 +85,23 @@ class Recorder:
         # Terminate the PortAudio interface
         pyaudio_interface.terminate()
 
-    def record(self) -> None:
-        pyaudio_interface, stream = self._start_stream()
-
-        self.running = True
+    def _record_loop(self) -> None:
+        self._pyaudio_interface, stream = self._start_stream()
         print("Recording started")
-
-        barking_at = datetime.now()
-        is_barking = False
 
         while self.running:
             if self.is_paused:
                 continue
 
             data = stream.read(self._chunk)
-            is_bark, intensity = self._is_bark(data)
+            intensity = self._signal_to_intensity(data)
 
-            # If to check when to record
-            if is_bark or (datetime.now() - barking_at) < timedelta(seconds=1):
+            # Save data if dog is barking
+            is_bark = self._is_bark(intensity)
+            if is_bark or (datetime.now() - self._barking_at) < timedelta(seconds=1):
                 self._frames.append(data)
 
-            # If to update time and stop recording the bark
-            if is_bark:
-                barking_at = datetime.now()
-                if not is_barking:
-                    is_barking = True
-                    self.bark_func(intensity)
-            elif is_barking and (datetime.now() - barking_at) > timedelta(seconds=1):
-                assert barking_at is not None
-                is_barking = False
-                self.total_time_barking = self.total_time_barking + (
-                    datetime.now() - barking_at
-                )
-                self.stop_bark_func(datetime.now() - barking_at)
-                self.save_recording(
-                    pyaudio_interface.get_sample_size(self._sample_format)
-                )
-                self._frames = []
+            self._intensity_decision(intensity)
 
-        self._stop_stream(pyaudio_interface, stream)
+        self._stop_stream(self._pyaudio_interface, stream)
+        self._pyaudio_interface = None

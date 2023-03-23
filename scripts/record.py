@@ -1,13 +1,12 @@
-#!/usr/bin/env python3
-import sys
-
-sys.path.append("../")
+from bark_monitor.recorders.recorder import Recorder
 from bark_monitor.very_bark_bot import VeryBarkBot
 
 
 def main():
     threshold = 5_000
-    VeryBarkBot(bark_level=threshold)
+
+    recorder = Recorder(threshold)
+    VeryBarkBot(recorder)
 
 
 if __name__ == "__main__":
