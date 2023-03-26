@@ -8,6 +8,7 @@ import numpy as np
 import pyaudio
 
 from bark_monitor.recorders.recorder_base import RecorderBase
+from bark_monitor.recorders.recording import Recording
 
 
 class Recorder(RecorderBase):
@@ -34,10 +35,10 @@ class Recorder(RecorderBase):
         self.total_time_barking = timedelta(seconds=0)
         self._pyaudio_interface = None
 
-    @staticmethod
-    def _filename() -> str:
+    @property
+    def _filename(self) -> str:
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        filename = str(Path("recordings", now + ".wav"))
+        filename = str(Path(Recording.folder(), now + ".wav"))
         if not Path(filename).parent.exists():
             Path(filename).parent.mkdir()
         return filename
@@ -45,7 +46,7 @@ class Recorder(RecorderBase):
     def _save_recording(self) -> None:
         # Save the recorded data as a WAV file
         assert self._pyaudio_interface is not None
-        wf = wave.open(self._filename(), "wb")
+        wf = wave.open(self._filename, "wb")
         wf.setnchannels(self._channels)
         wf.setsampwidth(self._pyaudio_interface.get_sample_size(self._sample_format))
         wf.setframerate(self._fs)

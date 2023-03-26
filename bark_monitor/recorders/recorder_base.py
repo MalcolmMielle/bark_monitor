@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Callable, Optional
 
+from bark_monitor.recorders.recording import Recording
+
 
 class RecorderBase:
     def __init__(
@@ -18,13 +20,15 @@ class RecorderBase:
         self.running = False
         self.is_paused = False
 
-    def _reset(self):
+    def _init(self):
         self._barking_at = datetime.now()
         self._is_barking = False
+        recording = Recording.read()
+        recording.start = datetime.now()
+        self.running = True
 
     def record(self):
-        self._reset()
-        self.running = True
+        self._init()
         self._record()
 
     def _record(self):
@@ -32,6 +36,9 @@ class RecorderBase:
 
     def stop(self):
         self.running = False
+        recording = Recording.read()
+        recording.time_barked = self.total_time_barking
+        recording.end(datetime.now())
         self._stop()
 
     def _stop(self):
