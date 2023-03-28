@@ -1,6 +1,7 @@
 recordings/
 data/
 api_key
+config/
 
 # ---> Python
 # Byte-compiled / optimized / DLL files
