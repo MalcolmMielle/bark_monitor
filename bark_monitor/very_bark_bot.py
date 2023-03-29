@@ -10,7 +10,7 @@ from bark_monitor.recorders.recording import Recording
 
 
 class VeryBarkBot:
-    def __init__(self, recorder: RecorderBase) -> None:
+    def __init__(self, recorder: RecorderBase, accept_new_users: bool = False) -> None:
         with open("api_key") as f:
             self._api_key = f.readlines()[0]
 
@@ -30,6 +30,8 @@ class VeryBarkBot:
 
         status_handler = CommandHandler("status", self.status)
         self.application.add_handler(status_handler)
+
+        self._accept_new_users = accept_new_users
 
         self.recorder = recorder
         self.recorder.bark_func = self.send_bark
@@ -53,8 +55,10 @@ class VeryBarkBot:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         assert update.effective_chat is not None
+        if not await VeryBarkBot._is_registered(update.effective_chat.id, context):
+            return
+
         chats = Chats.read()
-        chats.add(update.effective_chat)
         if self.recorder.running:
             await self.application.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -73,9 +77,10 @@ class VeryBarkBot:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         assert update.effective_chat is not None
-        chats = Chats.read()
-        chats.add(update.effective_chat)
+        if not await VeryBarkBot._is_registered(update.effective_chat.id, context):
+            return
 
+        chats = Chats.read()
         if not await self._is_recording(update):
             return
         self._stop_recorder_sync()
@@ -94,6 +99,12 @@ class VeryBarkBot:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         assert update.effective_chat is not None
+        if not self._accept_new_users:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="New users cannot be registered",
+            )
+            return
         chats = Chats.read()
         chats.add(update.effective_chat)
         await context.bot.send_message(
@@ -101,11 +112,23 @@ class VeryBarkBot:
             text="I will now let you know when Watson is barking!",
         )
 
+    @staticmethod
+    async def _is_registered(id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
+        chats = Chats.read()
+        is_registered = id in chats.chats
+        if not is_registered:
+            await context.bot.send_message(
+                chat_id=id,
+                text="You are not registered to this bot",
+            )
+        return is_registered
+
     async def pause(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         assert update.effective_chat is not None
-        chats = Chats.read()
-        chats.add(update.effective_chat)
-        if not await self._is_recording(update):
+
+        if not await self._is_recording(update) or not await VeryBarkBot._is_registered(
+            update.effective_chat.id, context
+        ):
             return
 
         self.recorder.is_paused = True
@@ -116,9 +139,9 @@ class VeryBarkBot:
 
     async def unpause(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         assert update.effective_chat is not None
-        chats = Chats.read()
-        chats.add(update.effective_chat)
-        if not await self._is_recording(update):
+        if not await self._is_recording(update) or not await VeryBarkBot._is_registered(
+            update.effective_chat.id, context
+        ):
             return
 
         self.recorder.is_paused = False
@@ -129,8 +152,8 @@ class VeryBarkBot:
 
     async def status(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         assert update.effective_chat is not None
-        chats = Chats.read()
-        chats.add(update.effective_chat)
+        if not await VeryBarkBot._is_registered(update.effective_chat.id, context):
+            return
 
         status = "The program is not recording. "
 
