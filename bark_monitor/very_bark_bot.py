@@ -14,42 +14,42 @@ class VeryBarkBot:
         with open("api_key") as f:
             self._api_key = f.readlines()[0]
 
-        self.application = ApplicationBuilder().token(self._api_key).build()
+        self._application = ApplicationBuilder().token(self._api_key).build()
 
         register_handler = CommandHandler("register", self.register)
-        self.application.add_handler(register_handler)
+        self._application.add_handler(register_handler)
         pause_handler = CommandHandler("pause", self.pause)
-        self.application.add_handler(pause_handler)
+        self._application.add_handler(pause_handler)
         unpause_handler = CommandHandler("unpause", self.unpause)
-        self.application.add_handler(unpause_handler)
+        self._application.add_handler(unpause_handler)
 
         start_handler = CommandHandler("start", self.start_recorder)
-        self.application.add_handler(start_handler)
+        self._application.add_handler(start_handler)
         stop_handler = CommandHandler("stop", self.stop_recorder)
-        self.application.add_handler(stop_handler)
+        self._application.add_handler(stop_handler)
 
         status_handler = CommandHandler("status", self.status)
-        self.application.add_handler(status_handler)
+        self._application.add_handler(status_handler)
 
         self._accept_new_users = accept_new_users
 
-        self.recorder = recorder
-        self.recorder.bark_func = self.send_bark
-        self.recorder.stop_bark_func = self.send_end_bark
+        self._recorder = recorder
+        self._recorder.bark_func = self.send_bark
+        self._recorder.stop_bark_func = self.send_end_bark
 
-        self.application.run_polling()
+        self._application.run_polling()
 
         self._stop_recorder_sync()
 
     async def _is_recording(self, update: Update, signal_to_user: bool = True) -> bool:
-        if not self.recorder.running:
+        if not self._recorder.running:
             assert update.effective_chat is not None
             if signal_to_user:
-                await self.application.bot.send_message(
+                await self._application.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text="The program is not recording",
                 )
-        return self.recorder.running
+        return self._recorder.running
 
     async def start_recorder(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -59,16 +59,16 @@ class VeryBarkBot:
             return
 
         chats = Chats.read()
-        if self.recorder.running:
-            await self.application.bot.send_message(
+        if self._recorder.running:
+            await self._application.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="The program is already recording",
             )
             return
 
-        self.recorder.record()
+        self._recorder.record()
         for chat in chats.chats:
-            await self.application.bot.send_message(
+            await self._application.bot.send_message(
                 chat_id=chat,
                 text="Recorder started",
             )
@@ -85,15 +85,15 @@ class VeryBarkBot:
             return
         self._stop_recorder_sync()
         for chat in chats.chats:
-            await self.application.bot.send_message(
+            await self._application.bot.send_message(
                 chat_id=chat,
                 text="Recorder stopped",
             )
 
     def _stop_recorder_sync(self) -> None:
-        if self.recorder.running is True:
-            self.recorder.stop()
-            print("The dog barked for:", self.recorder.total_time_barking)
+        if self._recorder.running is True:
+            self._recorder.stop()
+            print("The dog barked for:", self._recorder.total_time_barking)
 
     async def register(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -131,8 +131,8 @@ class VeryBarkBot:
         ):
             return
 
-        self.recorder.is_paused = True
-        await self.application.bot.send_message(
+        self._recorder.is_paused = True
+        await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Recorder paused",
         )
@@ -144,8 +144,8 @@ class VeryBarkBot:
         ):
             return
 
-        self.recorder.is_paused = False
-        await self.application.bot.send_message(
+        self._recorder.is_paused = False
+        await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Recorder unpaused",
         )
@@ -159,12 +159,14 @@ class VeryBarkBot:
 
         if await self._is_recording(update, signal_to_user=False):
             status = "The program is recording. "
-            if self.recorder.is_paused:
+            if self._recorder.is_paused:
                 status = "The program is paused. "
 
         recording = Recording.read()
-        status += "Time barked: " + str(recording.time_barked)
-        await self.application.bot.send_message(
+        status += "Time barked: " + str(
+            recording.time_barked + self._recorder.total_time_barking
+        )
+        await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text=status,
         )
