@@ -4,7 +4,7 @@ description: |
   Monitor your dog's barks
 version: git
 grade: stable
-confinement: devmode
+confinement: strict
 base: core22
 
 parts:
