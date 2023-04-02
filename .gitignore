@@ -2,6 +2,8 @@ recordings/
 data/
 api_key
 config/
+exported.txt
+*.snap
 
 # ---> Python
 # Byte-compiled / optimized / DLL files

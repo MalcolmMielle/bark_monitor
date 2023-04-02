@@ -19,6 +19,10 @@ class Recording:
         ), "Recording objects must be created using Recording.read"
 
     @property
+    def start_end(self) -> list[tuple[str, Optional[str]]]:
+        return self._start_end
+
+    @property
     def time_barked(self) -> timedelta:
         return pd.Timedelta(self._time_barked).to_pytimedelta()
 
