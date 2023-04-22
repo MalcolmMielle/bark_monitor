@@ -14,7 +14,13 @@ class VeryBarkBot:
         with open("api_key") as f:
             self._api_key = f.readlines()[0]
 
-        self._application = ApplicationBuilder().token(self._api_key).build()
+        self._application = (
+            ApplicationBuilder()
+            .token(self._api_key)
+            .get_updates_http_version("1.1")
+            .http_version("1.1")
+            .build()
+        )
 
         register_handler = CommandHandler("register", self.register)
         self._application.add_handler(register_handler)
