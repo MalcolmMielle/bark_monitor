@@ -14,13 +14,10 @@ from bark_monitor.recorders.recording import Recording
 class Recorder(RecorderBase):
     def __init__(
         self,
-        bark_level: int,
         bark_func: Optional[Callable[[int], None]] = None,
         stop_bark_func: Optional[Callable[[timedelta], None]] = None,
     ) -> None:
-        super().__init__(
-            bark_level=bark_level, bark_func=bark_func, stop_bark_func=stop_bark_func
-        )
+        super().__init__(bark_func=bark_func, stop_bark_func=stop_bark_func)
 
         self._chunk = 1024  # Record in chunks of 1024 samples
         self._sample_format = pyaudio.paInt16  # 16 bits per sample
@@ -33,7 +30,9 @@ class Recorder(RecorderBase):
 
         self._last_bark = datetime.now()
         self.total_time_barking = timedelta(seconds=0)
-        self._pyaudio_interface = None
+
+        self._pyaudio_interface: Optional[pyaudio.PyAudio] = None
+        self._stream: Optional[pyaudio.Stream] = None
 
     @property
     def _filename(self) -> str:
@@ -66,35 +65,46 @@ class Recorder(RecorderBase):
             return
         self._t.join()
 
-    def _start_stream(self) -> tuple[pyaudio.PyAudio, pyaudio.Stream]:
-        pyaudio_interface = pyaudio.PyAudio()  # Create an interface to PortAudio
-        stream = pyaudio_interface.open(
+    def _start_stream(self) -> None:
+        self._pyaudio_interface = pyaudio.PyAudio()  # Create an interface to PortAudio
+        self._stream = self._pyaudio_interface.open(
             format=self._sample_format,
             channels=self._channels,
             rate=self._fs,
             frames_per_buffer=self._chunk,
             input=True,
         )
-        return pyaudio_interface, stream
 
-    def _stop_stream(
-        self, pyaudio_interface: pyaudio.PyAudio, stream: pyaudio.Stream
-    ) -> None:
-        # Stop and close the stream
-        stream.stop_stream()
-        stream.close()
-        # Terminate the PortAudio interface
-        pyaudio_interface.terminate()
+    def _stop_stream(self) -> None:
+        if self._stream is not None:
+            # Stop and close the stream
+            self._stream.stop_stream()
+            self._stream.close()
+
+        if self._pyaudio_interface is not None:
+            # Terminate the PortAudio interface
+            self._pyaudio_interface.terminate()
+
+    def _set_bark_level(self, range_measurements: int = 100) -> None:
+        assert self._stream is not None
+        self._bark_level = 0
+        for _ in range(range_measurements):
+            data = self._stream.read(self._chunk)
+            self._bark_level = max(self._bark_level, self._signal_to_intensity(data))
+        self._bark_level *= 2
 
     def _record_loop(self) -> None:
-        self._pyaudio_interface, stream = self._start_stream()
+        self._start_stream()
         print("Recording started")
+
+        assert self._stream is not None
+        self._set_bark_level()
 
         while self.running:
             if self.is_paused:
                 continue
 
-            data = stream.read(self._chunk)
+            data = self._stream.read(self._chunk)
             intensity = self._signal_to_intensity(data)
 
             # Save data if dog is barking
@@ -104,5 +114,4 @@ class Recorder(RecorderBase):
 
             self._intensity_decision(intensity)
 
-        self._stop_stream(self._pyaudio_interface, stream)
-        self._pyaudio_interface = None
+        self._stop_stream()

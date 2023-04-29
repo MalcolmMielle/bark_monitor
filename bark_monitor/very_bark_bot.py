@@ -36,6 +36,8 @@ class VeryBarkBot:
 
         status_handler = CommandHandler("status", self.status)
         self._application.add_handler(status_handler)
+        bark_level_handler = CommandHandler("bark_level", self.bark_level)
+        self._application.add_handler(bark_level_handler)
 
         self._accept_new_users = accept_new_users
 
@@ -175,6 +177,18 @@ class VeryBarkBot:
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text=status,
+        )
+
+    async def bark_level(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        assert update.effective_chat is not None
+        if not await VeryBarkBot._is_registered(update.effective_chat.id, context):
+            return
+
+        await self._application.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Level " + str(self._recorder.bark_level),
         )
 
     def send_bark(self, intensity: int) -> None:

@@ -19,9 +19,8 @@ def get_parameters() -> bool:
 
 def main():
     accept_new_users = get_parameters()
-    threshold = 10_000
 
-    recorder = Recorder(threshold)
+    recorder = Recorder()
     VeryBarkBot(recorder, accept_new_users)
 
 
