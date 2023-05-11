@@ -1,3 +1,4 @@
+import logging
 import threading
 import wave
 from datetime import datetime, timedelta
@@ -7,17 +8,29 @@ from typing import Callable, Optional
 import numpy as np
 import pyaudio
 
-from bark_monitor.recorders.recorder_base import RecorderBase
 from bark_monitor.recorders.recording import Recording
 
 
-class Recorder(RecorderBase):
+class Recorder:
     def __init__(
         self,
-        bark_func: Optional[Callable[[int], None]] = None,
-        stop_bark_func: Optional[Callable[[timedelta], None]] = None,
+        bark_func: Optional[list[Callable[[int], None]]] = None,
+        stop_bark_func: Optional[list[Callable[[timedelta], None]]] = None,
     ) -> None:
-        super().__init__(bark_func=bark_func, stop_bark_func=stop_bark_func)
+        self._bark_level: int = 0
+
+        if bark_func is None:
+            bark_func = []
+        self.bark_func = bark_func
+
+        if stop_bark_func is None:
+            stop_bark_func = []
+        self.stop_bark_func = stop_bark_func
+
+        self._barking_at = datetime.now()
+        self._is_barking = False
+        self.running = False
+        self.is_paused = False
 
         self._chunk = 1024  # Record in chunks of 1024 samples
         self._sample_format = pyaudio.paInt16  # 16 bits per sample
@@ -34,6 +47,12 @@ class Recorder(RecorderBase):
         self._pyaudio_interface: Optional[pyaudio.PyAudio] = None
         self._stream: Optional[pyaudio.Stream] = None
 
+        self._bark_logger = logging.getLogger("bark_monitor")
+
+    @property
+    def bark_level(self) -> Optional[int]:
+        return self._bark_level
+
     @property
     def _filename(self) -> str:
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
@@ -41,6 +60,30 @@ class Recorder(RecorderBase):
         if not Path(filename).parent.exists():
             Path(filename).parent.mkdir()
         return filename
+
+    def _init(self):
+        self._barking_at = datetime.now()
+        self._is_barking = False
+        recording = Recording.read()
+        recording.start = datetime.now()
+        self.running = True
+
+    def record(self):
+        self._init()
+        self._record()
+
+    def stop(self):
+        self.running = False
+        recording = Recording.read()
+        recording.time_barked = self.total_time_barking
+        recording.end(datetime.now())
+        self._bark_level = 0
+        self._stop()
+
+    def _is_bark(self, value: int) -> bool:
+        if self._bark_level == 0:
+            return False
+        return value >= self._bark_level
 
     def _save_recording(self) -> None:
         # Save the recorded data as a WAV file
@@ -54,7 +97,7 @@ class Recorder(RecorderBase):
 
     def _signal_to_intensity(self, signal: bytes) -> int:
         np_data = np.frombuffer(signal, dtype=np.int16)
-        return np.amax(np_data)
+        return np.amax(np_data)  # type: ignore
 
     def _record(self) -> None:
         self._t = threading.Thread(target=self._record_loop)
@@ -95,7 +138,7 @@ class Recorder(RecorderBase):
 
     def _record_loop(self) -> None:
         self._start_stream()
-        print("Recording started")
+        self._bark_logger.info("Recording started")
 
         assert self._stream is not None
         self._set_bark_level()
@@ -109,9 +152,27 @@ class Recorder(RecorderBase):
 
             # Save data if dog is barking
             is_bark = self._is_bark(intensity)
-            if is_bark or (datetime.now() - self._barking_at) < timedelta(seconds=1):
+            if is_bark:
                 self._frames.append(data)
 
-            self._intensity_decision(intensity)
+            # If to update time and stop recording the bark
+            if is_bark:
+                self._barking_at = datetime.now()
+                if not self._is_barking:
+                    self._is_barking = True
+                    for func in self.bark_func:
+                        func(intensity - self._bark_level)
+            elif self._is_barking and (datetime.now() - self._barking_at) > timedelta(
+                seconds=5
+            ):
+                barked_for = timedelta(len(self._frames) / self._fs)
+                assert self._barking_at is not None
+                self._is_barking = False
+                self.total_time_barking = self.total_time_barking + barked_for
+
+                for func in self.stop_bark_func:
+                    func(barked_for)
+                self._save_recording()
+                self._frames = []
 
         self._stop_stream()

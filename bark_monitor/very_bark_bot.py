@@ -5,12 +5,12 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 from bark_monitor.chats import Chats
-from bark_monitor.recorders.recorder_base import RecorderBase
+from bark_monitor.recorders.recorder import Recorder
 from bark_monitor.recorders.recording import Recording
 
 
 class VeryBarkBot:
-    def __init__(self, recorder: RecorderBase, accept_new_users: bool = False) -> None:
+    def __init__(self, recorder: Recorder, accept_new_users: bool = False) -> None:
         with open("api_key") as f:
             self._api_key = f.readlines()[0]
 
@@ -42,8 +42,8 @@ class VeryBarkBot:
         self._accept_new_users = accept_new_users
 
         self._recorder = recorder
-        self._recorder.bark_func = self.send_bark
-        self._recorder.stop_bark_func = self.send_end_bark
+        self._recorder.bark_func.append(self.send_bark)
+        self._recorder.stop_bark_func.append(self.send_end_bark)
 
         self._application.run_polling()
 
@@ -101,7 +101,6 @@ class VeryBarkBot:
     def _stop_recorder_sync(self) -> None:
         if self._recorder.running is True:
             self._recorder.stop()
-            print("The dog barked for:", self._recorder.total_time_barking)
 
     async def register(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
