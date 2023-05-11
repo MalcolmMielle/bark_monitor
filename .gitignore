@@ -1,9 +1,10 @@
-recordings/
-data/
-api_key
-config/
-exported.txt
-*.snap
+/recordings/
+/readings/
+/data/
+/config/
+/exported.txt
+/*.snap
+/config.json
 
 # ---> Python
 # Byte-compiled / optimized / DLL files

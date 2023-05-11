@@ -10,9 +10,10 @@ from bark_monitor.recorders.recording import Recording
 
 
 class VeryBarkBot:
-    def __init__(self, recorder: Recorder, accept_new_users: bool = False) -> None:
-        with open("api_key") as f:
-            self._api_key = f.readlines()[0]
+    def __init__(
+        self, api_key: str, recorder: Recorder, accept_new_users: bool = False
+    ) -> None:
+        self._api_key = api_key
 
         self._application = (
             ApplicationBuilder()
