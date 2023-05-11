@@ -1,4 +1,3 @@
-import json
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -74,6 +73,6 @@ class Recording:
             with open(state._path, "r") as file:
                 lines = file.read()
                 state = jsonpickle.decode(lines)
-                return state
+                return state  # type: ignore
         except FileNotFoundError:
             return state

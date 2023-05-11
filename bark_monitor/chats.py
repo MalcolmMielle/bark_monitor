@@ -49,6 +49,6 @@ class Chats:
                 # dict = json.load(file)
                 lines = file.read()
                 state = jsonpickle.decode(lines)
-                return state
+                return state  # type: ignore
         except FileNotFoundError:
             return state

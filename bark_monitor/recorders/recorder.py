@@ -59,7 +59,7 @@ class Recorder:
     @property
     def _filename(self) -> str:
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        filename = str(Path(Recording.folder(self._output_folder), now + ".wav"))
+        filename = str(Path(Recording.folder(Path(self._output_folder)), now + ".wav"))
         if not Path(filename).parent.exists():
             Path(filename).parent.mkdir()
         return filename
