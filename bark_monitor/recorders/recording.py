@@ -9,10 +9,11 @@ import pandas as pd
 class Recording:
     __create_key = object()
 
-    def __init__(self, create_key) -> None:
+    def __init__(self, create_key, output_folder: str) -> None:
         self._start: Optional[str] = None
         self._start_end: list[tuple[str, Optional[str]]] = []
         self._time_barked = pd.Timedelta(0).isoformat()
+        self._output_folder = output_folder
 
         assert (
             create_key == Recording.__create_key
@@ -48,16 +49,16 @@ class Recording:
         self.save()
 
     @staticmethod
-    def folder() -> str:
+    def folder(output_folder: str) -> str:
         now = datetime.now().strftime("%d-%m-%Y")
-        folder = str(Path("recordings", now))
+        folder = str(Path(output_folder, now))
         if not Path(folder).exists():
             Path(folder).mkdir()
         return folder
 
     @property
     def _path(self) -> str:
-        return str(Path(Recording.folder(), "recording.json"))
+        return str(Path(Recording.folder(self._output_folder), "recording.json"))
 
     def save(self):
         json_string = json.dumps(
@@ -68,8 +69,8 @@ class Recording:
             outfile.write(json_string)
 
     @classmethod
-    def read(cls) -> "Recording":
-        state = Recording(cls.__create_key)
+    def read(cls, output_folder: str) -> "Recording":
+        state = Recording(cls.__create_key, output_folder)
         try:
             with open(state._path, "r") as file:
                 dict = json.load(file)

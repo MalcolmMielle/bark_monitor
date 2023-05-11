@@ -14,6 +14,7 @@ from bark_monitor.recorders.recording import Recording
 class Recorder:
     def __init__(
         self,
+        output_folder: str,
         bark_func: Optional[list[Callable[[int], None]]] = None,
         stop_bark_func: Optional[list[Callable[[timedelta], None]]] = None,
     ) -> None:
@@ -49,6 +50,8 @@ class Recorder:
 
         self._bark_logger = logging.getLogger("bark_monitor")
 
+        self._output_folder = output_folder
+
     @property
     def bark_level(self) -> Optional[int]:
         return self._bark_level
@@ -56,7 +59,7 @@ class Recorder:
     @property
     def _filename(self) -> str:
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        filename = str(Path(Recording.folder(), now + ".wav"))
+        filename = str(Path(Recording.folder(self._output_folder), now + ".wav"))
         if not Path(filename).parent.exists():
             Path(filename).parent.mkdir()
         return filename
@@ -64,7 +67,7 @@ class Recorder:
     def _init(self):
         self._barking_at = datetime.now()
         self._is_barking = False
-        recording = Recording.read()
+        recording = Recording.read(self._output_folder)
         recording.start = datetime.now()
         self.running = True
 
@@ -74,7 +77,7 @@ class Recorder:
 
     def stop(self):
         self.running = False
-        recording = Recording.read()
+        recording = Recording.read(self._output_folder)
         recording.time_barked = self.total_time_barking
         recording.end(datetime.now())
         self._bark_level = 0
