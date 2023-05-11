@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
+import jsonpickle
 import pandas as pd
 
 
@@ -13,7 +14,7 @@ class Recording:
         self._start: Optional[str] = None
         self._start_end: list[tuple[str, Optional[str]]] = []
         self._time_barked = pd.Timedelta(0).isoformat()
-        self._output_folder = output_folder
+        self._output_folder = Path(output_folder).absolute()
 
         assert (
             create_key == Recording.__create_key
@@ -49,11 +50,11 @@ class Recording:
         self.save()
 
     @staticmethod
-    def folder(output_folder: str) -> str:
+    def folder(output_folder: Path) -> Path:
         now = datetime.now().strftime("%d-%m-%Y")
-        folder = str(Path(output_folder, now))
-        if not Path(folder).exists():
-            Path(folder).mkdir()
+        folder = Path(output_folder, now)
+        if not folder.exists():
+            folder.mkdir()
         return folder
 
     @property
@@ -61,20 +62,18 @@ class Recording:
         return str(Path(Recording.folder(self._output_folder), "recording.json"))
 
     def save(self):
-        json_string = json.dumps(
-            self, default=lambda o: o.__dict__, sort_keys=True, indent=4
-        )
-        # Using a JSON string
+        encoded = jsonpickle.encode(self)
+        assert encoded is not None
         with open(self._path, "w") as outfile:
-            outfile.write(json_string)
+            outfile.write(encoded)
 
     @classmethod
     def read(cls, output_folder: str) -> "Recording":
         state = Recording(cls.__create_key, output_folder)
         try:
             with open(state._path, "r") as file:
-                dict = json.load(file)
-                state.__dict__ = dict
+                lines = file.read()
+                state = jsonpickle.decode(lines)
                 return state
         except FileNotFoundError:
             return state
