@@ -27,7 +27,7 @@ class Chats:
     @staticmethod
     def folder(config_folder: Path) -> Path:
         if not config_folder.exists():
-            config_folder.mkdir()
+            config_folder.mkdir(parents=True)
         return config_folder
 
     @property

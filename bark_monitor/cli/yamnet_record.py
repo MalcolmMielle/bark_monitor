@@ -1,8 +1,7 @@
 import argparse
 import json
 
-from bark_monitor.recorders.recorder import Recorder
-from bark_monitor.very_bark_bot import VeryBarkBot
+from bark_monitor.recorders.yamnet_recorder import YamnetRecorder
 
 
 def get_parameters() -> tuple[bool, str, str, str]:
@@ -30,13 +29,16 @@ def get_parameters() -> tuple[bool, str, str, str]:
     )
 
 
-# 6286614366,
-# 5721194791
 def main():
     accept_new_users, api_key, output_folder, config_folder = get_parameters()
-
-    recorder = Recorder(output_folder)
-    VeryBarkBot(api_key, config_folder, recorder, accept_new_users)
+    recorder = YamnetRecorder(
+        api_key=api_key,
+        config_folder=config_folder,
+        output_folder=output_folder,
+        accept_new_users=accept_new_users,
+        sampling_time_bark_seconds=1,
+    )
+    recorder.start_bot()
 
 
 if __name__ == "__main__":

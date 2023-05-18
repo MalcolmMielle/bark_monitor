@@ -30,8 +30,19 @@ The bark monitor will:
 To setup the program:
 
 1. Create a [Telegram bot](https://www.rowy.io/blog/create-telegram-bot) and obtain the api key.
-2. Add the api key to a file in the root folder named `api_key`.
-3. Start the program by running `python3 scripts/record.py`.
+2. Create a config file somewhere with this content:
+
+   ```
+    {
+      "api_key": "you api key",
+      "output_folder": "where to save the recordings",
+      "config_folder": "where to save the telegram bot configuration"
+    }
+
+    ```
+
+3. Start the program by running `python3 scripts/yamnet_record.py --config-file <path to config file>` to launch the NN based detection.
+   If you are launching the program for the first time and went to register new users to the bot add the flag `--accept-new-users` and send `\register` to the telegram bot
 
 See in the file `bark_monitor/very_bark_bot.py` to see the commands available to the bot.
 

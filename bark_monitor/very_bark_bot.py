@@ -5,7 +5,6 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 from bark_monitor.chats import Chats
-from bark_monitor.recorders.recorder import Recorder
 from bark_monitor.recorders.recording import Recording
 
 
@@ -14,7 +13,7 @@ class VeryBarkBot:
         self,
         api_key: str,
         config_folder: str,
-        recorder: Recorder,
+        recorder: "BaseRecorder",
         accept_new_users: bool = False,
     ) -> None:
         self._api_key = api_key
@@ -49,11 +48,9 @@ class VeryBarkBot:
         self._accept_new_users = accept_new_users
 
         self._recorder = recorder
-        self._recorder.bark_func.append(self.send_bark)
-        self._recorder.stop_bark_func.append(self.send_end_bark)
 
+    def start(self) -> None:
         self._application.run_polling()
-
         self._stop_recorder_sync()
 
     async def _is_recording(self, update: Update, signal_to_user: bool = True) -> bool:
@@ -176,9 +173,7 @@ class VeryBarkBot:
                 status = "The program is paused. "
 
         recording = Recording.read(self._config_folder)
-        status += "Time barked: " + str(
-            recording.time_barked + self._recorder.total_time_barking
-        )
+        status += "Time barked: " + str(recording.time_barked)
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text=status,
@@ -191,10 +186,16 @@ class VeryBarkBot:
         if not await self._is_registered(update.effective_chat.id, context):
             return
 
-        await self._application.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Level " + str(self._recorder.bark_level),
-        )
+        try:
+            await self._application.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Level " + str(self._recorder.bark_level),
+            )
+        except Exception as e:
+            await self._application.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="No bark level: " + str(e),
+            )
 
     def send_bark(self, intensity: int) -> None:
         chats = Chats.read(self._config_folder)
@@ -214,5 +215,15 @@ class VeryBarkBot:
                 f"bot{self._api_key}/"
                 f"sendMessage?chat_id={chat}&text=barking stopped after: "
                 + str(time_barking)
+            )
+            requests.get(url).json()
+
+    def send_event(self, event_type: str) -> None:
+        chats = Chats.read(self._config_folder)
+        for chat in chats.chats:
+            url = (
+                f"https://api.telegram.org/"
+                f"bot{self._api_key}/"
+                f"sendMessage?chat_id={chat}&text=detected: " + event_type
             )
             requests.get(url).json()

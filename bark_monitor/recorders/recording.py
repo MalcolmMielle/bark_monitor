@@ -7,6 +7,12 @@ import pandas as pd
 
 
 class Recording:
+    """Class to read and write the recording state.
+
+    The recording state needs to be consistent for the whole app. This is a helper class
+    to load and modify that state.
+    """
+
     __create_key = object()
 
     def __init__(self, create_key, output_folder: str) -> None:
@@ -53,7 +59,7 @@ class Recording:
         now = datetime.now().strftime("%d-%m-%Y")
         folder = Path(output_folder, now)
         if not folder.exists():
-            folder.mkdir()
+            folder.mkdir(parents=True)
         return folder
 
     @property
@@ -68,6 +74,12 @@ class Recording:
 
     @classmethod
     def read(cls, output_folder: str) -> "Recording":
+        """Factory method to load the state.
+
+        The state is loaded and written from/to `output_folder`.
+
+        :return: the state in `output_folder`
+        """
         state = Recording(cls.__create_key, output_folder)
         try:
             with open(state._path, "r") as file:

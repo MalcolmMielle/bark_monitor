@@ -20,4 +20,16 @@ parts:
 
 apps:
   bark-monitor:
-    command: bin/python3 $SNAP/lib/python3.10/site-packages/scripts/record.py
+    command: bin/python3 $SNAP/lib/python3.10/site-packages/bark_monitor/cli/yamnet_record.py
+    plugs: &plugs
+      - alsa
+      - audio-playback
+      - audio-record
+      - pulseaudio
+  bark-monitor-amplitude:
+    command: bin/python3 $SNAP/lib/python3.10/site-packages/bark_monitor/cli/record.py
+    plugs: &plugs
+      - alsa
+      - audio-playback
+      - audio-record
+      - pulseaudio
