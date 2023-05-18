@@ -24,8 +24,10 @@ Tested with python 3.9, should work with higher versions too.
 The bark monitor will:
 
 * Record your dog while you are gone.
-  The recordings are saved in the `recordings` to really show that neighbor they are full of shit.
+  The recordings are saved in a folder to enable you to really show that neighbor they are full of shit.
 * Monitor its barking real time and send you notification through a Telegram bot when your neighbor drives the dog crazy and they barks.
+  Detection of the bark can be done using the [Yamnet](https://www.tensorflow.org/hub/tutorials/yamnet) neural network implemented in tensorflow, or the amplitude of the signal.
+  Using Yamnet, cats are also tracked ;).
 
 To setup the program:
 
@@ -43,6 +45,33 @@ To setup the program:
 
 3. Start the program by running `python3 scripts/yamnet_record.py --config-file <path to config file>` to launch the NN based detection.
    If you are launching the program for the first time and went to register new users to the bot add the flag `--accept-new-users` and send `\register` to the telegram bot
+
+## Recordings
+
+Recordings are saved in `output_folder` in different folder for each day and time stamped:
+
+```bash
+output_folder
+  |--18-05-2026
+      |--18-05-2023-14-12.wav
+      |--18-05-2023-15-10.wav
+      |--recording.json
+
+```
+
+`recording.json` contains info about the day: when was the recorder on, how long has the dog barked.
+
+## Telegram bot
+
+Commands available to the bot are:
+
+* `\register`: register to receive updates from the bot.
+* `\start`: start the recorder
+* `\stop`: stop the recorder
+* `\status`: get the current status of the recorder -> is it recording and how long as the animal barked today.
+* `\pause`: pause the current recording without stopping it---on/off time won't be registered in the app state.
+* `\unpause`: restart a paused recorder.
+* `\bark_level`: return the threshold for amplitude if using the amplitude based detection.
 
 See in the file `bark_monitor/very_bark_bot.py` to see the commands available to the bot.
 
