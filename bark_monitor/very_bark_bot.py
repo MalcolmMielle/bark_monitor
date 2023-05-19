@@ -50,6 +50,15 @@ class VeryBarkBot:
         self._recorder = recorder
 
     def start(self) -> None:
+        chats = Chats.read(self._config_folder)
+        for chat in chats.chats:
+            url = (
+                f"https://api.telegram.org/"
+                f"bot{self._api_key}/"
+                f"sendMessage?chat_id={chat}&text=Bot is ready with "
+                + self._recorder.__class__.__name__
+            )
+            requests.get(url).json()
         self._application.run_polling()
         self._stop_recorder_sync()
 
@@ -172,7 +181,7 @@ class VeryBarkBot:
             if self._recorder.is_paused:
                 status = "The program is paused. "
 
-        recording = Recording.read(self._config_folder)
+        recording = Recording.read(self._recorder.output_folder)
         status += "Time barked: " + str(recording.time_barked)
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,

@@ -38,7 +38,7 @@ To setup the program:
     {
       "api_key": "you api key",
       "output_folder": "where to save the recordings",
-      "config_folder": "where to save the telegram bot configuration"
+      "config_folder": "where to save the telegram bot configuration",
     }
 
     ```
@@ -74,6 +74,23 @@ Commands available to the bot are:
 * `\bark_level`: return the threshold for amplitude if using the amplitude based detection.
 
 See in the file `bark_monitor/very_bark_bot.py` to see the commands available to the bot.
+
+## Thingsboard
+
+It is possible to log the barks onto [Thingsboard](https://thingsboard.io/).
+First, [create a device](https://thingsboard.io/docs/getting-started-guides/helloworld/#step-1-provision-device) on ThingsBoard, and then simply add:
+
+```json
+  "thingsboard_device_token": "Device token",
+  "thingsboard_ip": "ip address",
+  "thingsboard_port": port number,
+```
+
+with the correct value to the `config.json` file created previously.
+
+You can visualize in realtime your pets behavior on a dashboard:
+
+![Dashboard sowing when the pet did noise](images/dashboard.png)
 
 ## Contributions
 

@@ -89,8 +89,10 @@ class Recorder(BaseRecorder):
                 assert self._barking_at is not None
                 self._is_barking = False
 
-                recording = Recording.read(self._output_folder)
-                duration = timedelta((len(self._frames) * self._chunk) / self._fs)
+                recording = Recording.read(self.output_folder)
+                duration = timedelta(
+                    seconds=(len(self._frames) * self._chunk) / self._fs
+                )
                 recording.time_barked += duration
 
                 self._chat_bot.send_end_bark(duration)

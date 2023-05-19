@@ -38,7 +38,7 @@ class BaseRecorder(ABC):
 
         self._bark_logger = logging.getLogger("bark_monitor")
 
-        self._output_folder = output_folder
+        self.output_folder = output_folder
 
         self._bark_logger.info("Starting bot")
         self._chat_bot = VeryBarkBot(
@@ -54,13 +54,13 @@ class BaseRecorder(ABC):
     @property
     def _filename(self) -> Path:
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        filename = Path(Recording.folder(Path(self._output_folder)), now + ".wav")
+        filename = Path(Recording.folder(Path(self.output_folder)), now + ".wav")
         if not filename.parent.exists():
             filename.parent.mkdir(parents=True)
         return filename.absolute()
 
     def _init(self):
-        recording = Recording.read(self._output_folder)
+        recording = Recording.read(self.output_folder)
         recording.start = datetime.now()
         self.running = True
 
@@ -70,7 +70,7 @@ class BaseRecorder(ABC):
 
     def stop(self) -> None:
         self.running = False
-        recording = Recording.read(self._output_folder)
+        recording = Recording.read(self.output_folder)
         recording.end(datetime.now())
         self._stop()
 

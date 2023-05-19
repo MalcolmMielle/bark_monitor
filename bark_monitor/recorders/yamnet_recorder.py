@@ -2,8 +2,10 @@ import csv
 import tempfile
 from datetime import timedelta
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
+import requests
 import scipy
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -25,6 +27,7 @@ class YamnetRecorder(BaseRecorder):
         output_folder: str,
         accept_new_users: bool = False,
         sampling_time_bark_seconds: int = 1,
+        http_url: Optional[str] = None,
     ) -> None:
         """
         `api_key` is the key of telegram bot and `config_folder` is the folder with the
@@ -40,6 +43,22 @@ class YamnetRecorder(BaseRecorder):
         self._sampling_time_bark_seconds = sampling_time_bark_seconds
 
         self._nn_frames: list[bytes] = []
+        self._http_url = http_url
+
+        self._animal_labels = [
+            "Animal",
+            "Domestic animals, pets",
+            "Dog",
+            "Bark",
+            "Howl",
+            "Growling",
+            "Bow-wow",
+            "Whimper (dog)",
+            "Cat",
+            "Purr",
+            "Meow",
+            "Hiss",
+        ]
 
         super().__init__(
             api_key=api_key,
@@ -102,39 +121,37 @@ class YamnetRecorder(BaseRecorder):
                 nn_recording = self._save_recording(
                     self._nn_frames, Path(tmpdirname, "rec.wav")
                 )
-                label = self._detect(nn_recording)
-                self._bark_logger.info("detected " + label)
-                if label in [
-                    "Animal",
-                    "Domestic animals, pets",
-                    "Dog",
-                    "Bark",
-                    "Howl",
-                    "Growling",
-                    "Bow-wow",
-                    "Whimper (dog)",
-                    "Cat",
-                    "Purr",
-                    "Meow",
-                    "Hiss",
-                ]:
-                    # notify
-                    self._chat_bot.send_event(label)
+                self._analyse_recording(nn_recording)
 
-                    # save all frame to make one large recording
-                    self._frames += self._nn_frames
-
-                    # increase time barked in state
-                    recording = Recording.read(self._output_folder)
-                    duration = timedelta((len(self._frames) * self._chunk) / self._fs)
-                    recording.time_barked += duration
-
-                else:
-                    if len(self._frames) > 0:
-                        self._save_recording(self._frames)
-                        self._frames = []
-
-                # remove temporary recording
-                self._nn_frames = []
+            # remove temporary recording
+            self._nn_frames = []
 
         self._stop_stream()
+
+    def _analyse_recording(self, nn_recording: Path) -> None:
+        label = self._detect(nn_recording)
+        self._bark_logger.info("detected " + label)
+
+        payload = dict.fromkeys(self._animal_labels, 0)
+
+        if label in self._animal_labels:
+            payload[label] = 1
+            # notify
+            self._chat_bot.send_event(label)
+
+            # save all frame to make one large recording
+            self._frames += self._nn_frames
+
+            # increase time barked in state
+            recording = Recording.read(self.output_folder)
+            duration = timedelta(
+                seconds=(len(self._nn_frames) * self._chunk) / self._fs
+            )
+            recording.time_barked += duration
+
+        elif len(self._frames) > 0:
+            self._save_recording(self._frames)
+            self._frames = []
+
+        if self._http_url is not None:
+            requests.post(self._http_url, json=payload)
