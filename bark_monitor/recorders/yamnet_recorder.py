@@ -18,7 +18,10 @@ from bark_monitor.recorders.recording import Recording
 class YamnetRecorder(BaseRecorder):
     """A recorder using [Yamnet](https://www.tensorflow.org/hub/tutorials/yamnet) to
     detect dog barks.
-    """
+
+    TODO for Rpi use the tflite version:
+    https://github.com/tensorflow/examples/blob/master/lite/examples/audio_classification/raspberry_pi/classify.py
+    """  # noqa
 
     def __init__(
         self,
@@ -28,6 +31,7 @@ class YamnetRecorder(BaseRecorder):
         accept_new_users: bool = False,
         sampling_time_bark_seconds: int = 1,
         http_url: Optional[str] = None,
+        framerate: int = 16000,
     ) -> None:
         """
         `api_key` is the key of telegram bot and `config_folder` is the folder with the
@@ -64,7 +68,7 @@ class YamnetRecorder(BaseRecorder):
             api_key=api_key,
             config_folder=config_folder,
             output_folder=output_folder,
-            framerate=16000,
+            framerate=framerate,
             accept_new_users=accept_new_users,
         )
 
@@ -108,7 +112,9 @@ class YamnetRecorder(BaseRecorder):
             if self.is_paused:
                 continue
 
-            data = self._stream.read(self._chunk)
+            # Exception overflow is needed when running on the rpi
+            # Because processing is slow and frame can be lost.
+            data = self._stream.read(self._chunk, exception_on_overflow=False)
             self._nn_frames.append(data)
             duration = int((len(self._nn_frames) * self._chunk) / self._fs)
 

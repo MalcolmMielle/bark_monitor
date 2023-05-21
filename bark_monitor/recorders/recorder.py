@@ -68,7 +68,7 @@ class Recorder(BaseRecorder):
             if self.is_paused:
                 continue
 
-            data = self._stream.read(self._chunk)
+            data = self._stream.read(self._chunk, exception_on_overflow=False)
             intensity = self._signal_to_intensity(data)
 
             # Save data if dog is barking

@@ -5,7 +5,7 @@ from typing import Optional
 from bark_monitor.recorders.yamnet_recorder import YamnetRecorder
 
 
-def get_parameters() -> tuple[bool, str, str, str, Optional[str]]:
+def get_parameters() -> tuple[bool, str, str, str, Optional[str], int, int]:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--config-file",
@@ -38,12 +38,27 @@ def get_parameters() -> tuple[bool, str, str, str, Optional[str]]:
             + json_data["thingsboard_device_token"]
             + "/telemetry"
         )
+
+    microphone_framerate = (
+        json_data["microphone framerate"]
+        if "microphone framerate" in json_data
+        else 16000
+    )
+
+    sampling_time_bark_seconds = (
+        json_data["sampling time bark seconds"]
+        if "sampling time bark seconds" in json_data
+        else 1
+    )
+
     return (
         args.accept_new_users,
         json_data["api_key"],
         json_data["output_folder"],
         json_data["config_folder"],
         things_board_url,
+        microphone_framerate,
+        sampling_time_bark_seconds,
     )
 
 
@@ -54,6 +69,8 @@ def main():
         output_folder,
         config_folder,
         things_board_device,
+        microphone_framerate,
+        sampling_time_bark_seconds,
     ) = get_parameters()
 
     recorder = YamnetRecorder(
@@ -61,8 +78,9 @@ def main():
         config_folder=config_folder,
         output_folder=output_folder,
         accept_new_users=accept_new_users,
-        sampling_time_bark_seconds=1,
+        sampling_time_bark_seconds=sampling_time_bark_seconds,
         http_url=things_board_device,
+        framerate=microphone_framerate,
     )
     recorder.start_bot()
 
