@@ -13,12 +13,6 @@ Do you want to know if your dog is actually noisy when you are gone but you don'
 
 Then this project is for you!
 
-## Install
-
-`pip install -e .`
-
-Tested with python 3.9, should work with higher versions too.
-
 ## How to use the bark monitor
 
 The bark monitor will:
@@ -29,22 +23,33 @@ The bark monitor will:
   Detection of the bark can be done using the [Yamnet](https://www.tensorflow.org/hub/tutorials/yamnet) neural network implemented in tensorflow, or the amplitude of the signal.
   Using Yamnet, cats are also tracked ;).
 
-To setup the program:
+## Install and use
 
-1. Create a [Telegram bot](https://www.rowy.io/blog/create-telegram-bot) and obtain the api key.
-2. Create a config file somewhere with this content:
+Install with tensorflow for Deep Learning based detection using [Yamnet](https://www.tensorflow.org/hub/tutorials/yamnet):
 
-   ```
-    {
-      "api_key": "you api key",
-      "output_folder": "where to save the recordings",
-      "config_folder": "where to save the telegram bot configuration",
-    }
+`pip install .[ml]`
 
-    ```
+Instzall without tensorflow to use amplitude based detection:
 
-3. Start the program by running `python3 scripts/yamnet_record.py --config-file <path to config file>` to launch the NN based detection.
-   If you are launching the program for the first time and went to register new users to the bot add the flag `--accept-new-users` and send `\register` to the telegram bot
+`pip install .`
+
+Tested with python 3.9, should work with higher versions too.
+To run the unit tests and be able to contribute, install the package in editable mode using the `-e` option for pip.
+
+Once the library is installed , create a [Telegram bot](https://www.rowy.io/blog/create-telegram-bot) and obtain the api key.
+Then, ceate a config file somewhere with this content:
+
+```json
+{
+  "api_key": "you api key",
+  "output_folder": "where to save the recordings",
+  "config_folder": "where to save the telegram bot configuration",
+}
+
+```
+
+Start the program by running `python3 scripts/yamnet_record.py --config-file <path to config file>` to launch the NN based detection.
+If you are launching the program for the first time and went to register new users to the bot add the flag `--accept-new-users` and send `\register` to the telegram bot
 
 ## Recordings
 
