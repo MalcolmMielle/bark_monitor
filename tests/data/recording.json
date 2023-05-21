@@ -1,10 +1,29 @@
 {
+    "py/object": "bark_monitor.recorders.recording.Recording",
     "_start": null,
     "_start_end": [
-        [
-            "19:39:32.163523",
-            "20:04:41.614984"
-        ]
+        {
+            "py/tuple": [
+                "19:39:32.163523",
+                "20:04:41.614984"
+            ]
+        }
     ],
-    "_time_barked": "P1DT0H0M0S"
+    "_time_barked": "P1DT0H0M0S",
+    "_output_folder": {
+        "py/reduce": [
+            {
+                "py/type": "pathlib.PosixPath"
+            },
+            {
+                "py/tuple": [
+                    "/",
+                    "home",
+                    "ubuntu",
+                    "bark_monitor",
+                    "recordings"
+                ]
+            }
+        ]
+    }
 }

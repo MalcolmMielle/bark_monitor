@@ -93,7 +93,7 @@ class Recorder(BaseRecorder):
                 duration = timedelta(
                     seconds=(len(self._frames) * self._chunk) / self._fs
                 )
-                recording.time_barked += duration
+                recording.add_time_barked(duration)
 
                 self._chat_bot.send_end_bark(duration)
                 self._save_recording(self._frames)

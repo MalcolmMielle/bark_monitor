@@ -33,8 +33,7 @@ class Recording:
     def time_barked(self) -> timedelta:
         return pd.Timedelta(self._time_barked).to_pytimedelta()
 
-    @time_barked.setter
-    def time_barked(self, value: timedelta) -> None:
+    def add_time_barked(self, value: timedelta) -> None:
         timedelta_pd = pd.Timedelta(value)
         self._time_barked = (pd.Timedelta(self._time_barked) + timedelta_pd).isoformat()
         self.save()

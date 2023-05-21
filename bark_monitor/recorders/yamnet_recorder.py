@@ -153,7 +153,7 @@ class YamnetRecorder(BaseRecorder):
             duration = timedelta(
                 seconds=(len(self._nn_frames) * self._chunk) / self._fs
             )
-            recording.time_barked += duration
+            recording.add_time_barked(duration)
 
         elif len(self._frames) > 0:
             self._save_recording(self._frames)
