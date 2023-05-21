@@ -37,13 +37,15 @@ Tested with python 3.9, should work with higher versions too.
 To run the unit tests and be able to contribute, install the package in editable mode using the `-e` option for pip.
 
 Once the library is installed , create a [Telegram bot](https://www.rowy.io/blog/create-telegram-bot) and obtain the api key.
-Then, ceate a config file somewhere with this content:
+Then, ceate a config file somewhere with this content (change to the correct values for your hardware):
 
 ```json
 {
   "api_key": "you api key",
   "output_folder": "where to save the recordings",
   "config_folder": "where to save the telegram bot configuration",
+  "sampling time bark seconds": 1,
+  "microphone framerate": 16000
 }
 
 ```
