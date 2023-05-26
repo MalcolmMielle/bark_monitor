@@ -45,6 +45,9 @@ class VeryBarkBot:
         bark_level_handler = CommandHandler("bark_level", self.bark_level)
         self._application.add_handler(bark_level_handler)
 
+        activity_handler = CommandHandler("activity", self.activity)
+        self._application.add_handler(activity_handler)
+
         self._accept_new_users = accept_new_users
 
         self._recorder = recorder
@@ -186,6 +189,22 @@ class VeryBarkBot:
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text=status,
+        )
+
+    async def activity(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        assert update.effective_chat is not None
+        if not await self._is_registered(update.effective_chat.id, context):
+            return
+
+        recording = Recording.read(self._recorder.output_folder)
+        activities = ""
+        for datetime, activity in recording.activity_tracker.items():
+            activities += activity + " at " + str(datetime) + "\n"
+        await self._application.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=activities,
         )
 
     async def bark_level(

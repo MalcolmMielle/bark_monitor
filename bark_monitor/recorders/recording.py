@@ -18,12 +18,25 @@ class Recording:
     def __init__(self, create_key, output_folder: str) -> None:
         self._start: Optional[str] = None
         self._start_end: list[tuple[str, Optional[str]]] = []
-        self._time_barked = pd.Timedelta(0).isoformat()
+        self._time_barked = timedelta(0)
         self._output_folder = Path(output_folder).absolute()
+        self._activity_tracker: dict[datetime, str] = {}
 
         assert (
             create_key == Recording.__create_key
         ), "Recording objects must be created using Recording.read"
+
+    @property
+    def activity_tracker(self) -> dict[datetime, str]:
+        return self._activity_tracker
+
+    def add_activity(self, time: datetime, activity: str) -> None:
+        self._activity_tracker[time] = activity
+        self.save()
+
+    def clear_activity(self) -> None:
+        self._activity_tracker = {}
+        self.save()
 
     @property
     def start_end(self) -> list[tuple[str, Optional[str]]]:
@@ -31,11 +44,10 @@ class Recording:
 
     @property
     def time_barked(self) -> timedelta:
-        return pd.Timedelta(self._time_barked).to_pytimedelta()
+        return self._time_barked
 
     def add_time_barked(self, value: timedelta) -> None:
-        timedelta_pd = pd.Timedelta(value)
-        self._time_barked = (pd.Timedelta(self._time_barked) + timedelta_pd).isoformat()
+        self._time_barked = self._time_barked + value
         self.save()
 
     @property
@@ -83,7 +95,12 @@ class Recording:
         try:
             with open(state._path, "r") as file:
                 lines = file.read()
-                state = jsonpickle.decode(lines)
+                state: "Recording" = jsonpickle.decode(lines)
+                # Here to convert old format of recording if needed
+                if type(state._time_barked) == str:
+                    state._time_barked = pd.Timedelta(
+                        state._time_barked
+                    ).to_pytimedelta()
                 return state  # type: ignore
         except FileNotFoundError:
             return state

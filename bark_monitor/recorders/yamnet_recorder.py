@@ -1,6 +1,6 @@
 import csv
 import tempfile
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -154,6 +154,9 @@ class YamnetRecorder(BaseRecorder):
                 seconds=(len(self._nn_frames) * self._chunk) / self._fs
             )
             recording.add_time_barked(duration)
+
+            # Log in activity logger
+            recording.add_activity(datetime.now(), label)
 
         elif len(self._frames) > 0:
             self._save_recording(self._frames)
