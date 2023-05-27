@@ -78,7 +78,7 @@ class Recording:
         return str(Path(Recording.folder(self._output_folder), "recording.json"))
 
     def save(self):
-        encoded = jsonpickle.encode(self)
+        encoded = jsonpickle.encode(self, keys=True)
         assert encoded is not None
         with open(self._path, "w") as outfile:
             outfile.write(encoded)
@@ -95,7 +95,7 @@ class Recording:
         try:
             with open(state._path, "r") as file:
                 lines = file.read()
-                state: "Recording" = jsonpickle.decode(lines)
+                state: "Recording" = jsonpickle.decode(lines, keys=True)
                 # Here to convert old format of recording if needed
                 if type(state._time_barked) == str:
                     state._time_barked = pd.Timedelta(

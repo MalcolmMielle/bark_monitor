@@ -24,6 +24,13 @@ class TestRecording(unittest.TestCase):
         self.assertEqual(len(recording.activity_tracker), 0)
         time = datetime.datetime(year=2023, month=1, day=1)
         recording.add_activity(time, "test activity")
+        key = list(recording.activity_tracker.keys())[0]
+        self.assertEqual(key, time)
+
+        recording = Recording.read("tests/data")
+        key = list(recording.activity_tracker.keys())[0]
+        self.assertEqual(key, time)
+
         time = datetime.datetime(year=2023, month=1, day=2)
         recording.add_activity(time, "test activity")
         self.assertEqual(len(recording.activity_tracker), 2)
