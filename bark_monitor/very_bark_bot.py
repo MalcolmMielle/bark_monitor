@@ -233,7 +233,7 @@ class VeryBarkBot:
 
         activities = "Activities:\n"
         for datetime, activity in recording.activity_tracker.items():
-            activities += activity + " at " + str(datetime) + "\n"
+            activities += datetime.strftime("%H %M %S") + ": " + activity + "\n"
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text=activities,
