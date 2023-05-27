@@ -1,4 +1,5 @@
 from datetime import timedelta
+from enum import Enum
 
 import requests
 from telegram import Update
@@ -8,12 +9,33 @@ from bark_monitor.chats import Chats
 from bark_monitor.recorders.recording import Recording
 
 
+class Commands(Enum):
+    help = "Display a help message"
+    activity = "Display the day activity of the pets"
+    start = "Start the recorder"
+    stop = "Stop the recorder"
+    pause = "Pause the recorder"
+    unpause = "Unpause the recorder"
+    bark_level = (
+        "If using amplitude base recording, show the threshold to detect a bark"
+    )
+    register = "Register a new user"
+    status = "Status of the recorder"
+
+    @staticmethod
+    def help_message() -> str:
+        msg = ""
+        for e in Commands:
+            msg += e.name + " - " + e.value + "\n"
+        return msg
+
+
 class VeryBarkBot:
     def __init__(
         self,
         api_key: str,
         config_folder: str,
-        recorder: "BaseRecorder",
+        recorder: "BaseRecorder",  # noqa F821
         accept_new_users: bool = False,
     ) -> None:
         self._api_key = api_key
@@ -47,6 +69,9 @@ class VeryBarkBot:
 
         activity_handler = CommandHandler("activity", self.activity)
         self._application.add_handler(activity_handler)
+
+        help_handler = CommandHandler("help", self.help)
+        self._application.add_handler(help_handler)
 
         self._accept_new_users = accept_new_users
 
@@ -199,7 +224,14 @@ class VeryBarkBot:
             return
 
         recording = Recording.read(self._recorder.output_folder)
-        activities = ""
+        if len(recording.activity_tracker) == 0:
+            await self._application.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="No activities today",
+            )
+            return
+
+        activities = "Activities:\n"
         for datetime, activity in recording.activity_tracker.items():
             activities += activity + " at " + str(datetime) + "\n"
         await self._application.bot.send_message(
@@ -255,3 +287,14 @@ class VeryBarkBot:
                 f"sendMessage?chat_id={chat}&text=detected: " + event_type
             )
             requests.get(url).json()
+
+    async def help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        assert update.effective_chat is not None
+        if not await self._is_registered(update.effective_chat.id, context):
+            return
+
+        help_message = Commands.help_message()
+        await self._application.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=help_message,
+        )
