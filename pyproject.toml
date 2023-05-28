@@ -28,4 +28,5 @@ ml = [
 
 [project.scripts]
 bark-monitor = "bark_monitor.cli.yamnet_record:main"
+bark-monitor-lite = "bark_monitor.cli.yamnet_lite_record:main"
 bark-monitor-amplitude = "bark_monitor.cli.record:main"

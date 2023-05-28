@@ -20,11 +20,12 @@ class BaseRecorder(ABC):
         output_folder: str,
         framerate: int = 44100,
         accept_new_users: bool = False,
+        chunk: int = 4096,
     ) -> None:
         self.running = False
         self.is_paused = False
 
-        self._chunk = 4096  # Record in chunks of 1024 samples
+        self._chunk = chunk  # Record in chunks of 1024 samples
         self._sample_format = pyaudio.paInt16  # 16 bits per sample
         self._channels = 1
         self._fs = framerate

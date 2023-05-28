@@ -51,6 +51,8 @@ Then, ceate a config file somewhere with this content (change to the correct val
 ```
 
 Start the program by running `python3 scripts/yamnet_record.py --config-file <path to config file>` to launch the NN based detection.
+If you are on Raspberry Pi or other device, consider using the [TFlite version of Yamnet](https://tfhub.dev/google/lite-model/yamnet/classification/tflite/1) by using `python3 scripts/yamnet_lite_record.py --config-file <path to config file>` instead.
+
 If you are launching the program for the first time and went to register new users to the bot add the flag `--accept-new-users` and send `\register` to the telegram bot
 
 ## Recordings
@@ -70,7 +72,9 @@ output_folder
 
 ## Telegram bot
 
-Commands available to the bot are:
+To see all commands available to the bot, send `\help` to your bot.
+
+Example of commands available to the bot are:
 
 * `\register`: register to receive updates from the bot.
 * `\start`: start the recorder

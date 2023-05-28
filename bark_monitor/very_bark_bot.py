@@ -45,6 +45,7 @@ class VeryBarkBot:
             .token(self._api_key)
             .get_updates_http_version("1.1")
             .http_version("1.1")
+            .pool_timeout(5)
             .build()
         )
 
