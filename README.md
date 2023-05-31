@@ -29,11 +29,15 @@ Install with tensorflow for Deep Learning based detection using [Yamnet](https:/
 
 `pip install .[ml]`
 
-Instzall without tensorflow to use amplitude based detection:
+Install without tensorflow to use amplitude based detection:
 
 `pip install .`
 
 Tested with python 3.9, should work with higher versions too.
+
+> If the compilation fails due to c compiler errors, you might need to install gcc/g++.
+> On Ubuntu: `sudo apt install build-essential`
+
 To run the unit tests and be able to contribute, install the package in editable mode using the `-e` option for pip.
 
 Once the library is installed , create a [Telegram bot](https://www.rowy.io/blog/create-telegram-bot) and obtain the api key.
@@ -50,8 +54,8 @@ Then, ceate a config file somewhere with this content (change to the correct val
 
 ```
 
-Start the program by running `python3 scripts/yamnet_record.py --config-file <path to config file>` to launch the NN based detection.
-If you are on Raspberry Pi or other device, consider using the [TFlite version of Yamnet](https://tfhub.dev/google/lite-model/yamnet/classification/tflite/1) by using `python3 scripts/yamnet_lite_record.py --config-file <path to config file>` instead.
+Start the program by running `python3 bark_monitor/cli/yamnet_record.py --config-file <path to config file>` to launch the NN based detection.
+If you are on Raspberry Pi or other device, consider using the [TFlite version of Yamnet](https://tfhub.dev/google/lite-model/yamnet/classification/tflite/1) by using `python3 bark_monitor/cli/yamnet_lite_record.py --config-file <path to config file>` instead.
 
 If you are launching the program for the first time and went to register new users to the bot add the flag `--accept-new-users` and send `\register` to the telegram bot
 
