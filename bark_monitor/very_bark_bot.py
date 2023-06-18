@@ -1,9 +1,22 @@
 from datetime import timedelta
 from enum import Enum
+from typing import Optional
 
+import googleapiclient.http
+import httplib2
+import oauth2client.client
 import requests
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
 
 from bark_monitor.chats import Chats
 from bark_monitor.recorders.recording import Recording
@@ -21,6 +34,7 @@ class Commands(Enum):
     )
     register = "Register a new user"
     status = "Status of the recorder"
+    save = "Save to google drive"
 
     @staticmethod
     def help_message() -> str:
@@ -74,9 +88,26 @@ class VeryBarkBot:
         help_handler = CommandHandler("help", self.help)
         self._application.add_handler(help_handler)
 
+        conv_handler = ConversationHandler(
+            entry_points=[CommandHandler("save", self.start_conv)],
+            states={
+                0: [
+                    MessageHandler(
+                        filters.TEXT,
+                        self.received_information,
+                    ),
+                ],
+            },
+            fallbacks=[MessageHandler(filters.Regex("^Done$"), self.start_conv)],
+        )
+
+        self._application.add_handler(conv_handler)
+
         self._accept_new_users = accept_new_users
 
         self._recorder = recorder
+        self._code_google_drive: Optional[str] = None
+        self.flow = None
 
     def start(self) -> None:
         chats = Chats.read(self._config_folder)
@@ -299,3 +330,83 @@ class VeryBarkBot:
             chat_id=update.effective_chat.id,
             text=help_message,
         )
+
+    async def start_conv(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> int:
+        """Start the conversation and ask user for input."""
+
+        # OAuth 2.0 scope that will be authorized.
+        # Check https://developers.google.com/drive/scopes for all available scopes.
+        OAUTH2_SCOPE = "https://www.googleapis.com/auth/drive"
+
+        # Location of the client secrets.
+        CLIENT_SECRETS = "client_secrets.json"
+
+        # Perform OAuth2.0 authorization flow.
+        self.flow = oauth2client.client.flow_from_clientsecrets(
+            CLIENT_SECRETS, OAUTH2_SCOPE
+        )
+        self.flow.redirect_uri = oauth2client.client.OOB_CALLBACK_URN
+        authorize_url = self.flow.step1_get_authorize_url()
+        assert update.message is not None
+        await update.message.reply_text(
+            "Go to the following link in your browser: "
+            + authorize_url
+            + " and enter the code",
+        )
+
+        return 0
+
+    async def received_information(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> int:
+        """Store info provided by user and ask for the next category."""
+
+        assert update.message is not None
+
+        text = update.message.text
+        assert text is not None
+
+        await update.message.reply_text(
+            "Neat! the code is: " + text,
+        )
+
+        assert self.flow is not None
+        credentials = self.flow.step2_exchange(text)
+
+        # Create an authorized Drive API client.
+        http = httplib2.Http()
+        credentials.authorize(http)
+
+        service = build("drive", "v2", http=http)
+
+        # Perform the request and print the result.
+        try:
+            # Insert a file. Files are comprised of contents and metadata.
+            # MediaFileUpload abstracts uploading file contents from a file on disk.
+            media_body = googleapiclient.http.MediaFileUpload(
+                "document.txt", mimetype="text/plain", resumable=True
+            )
+            # The body contains the metadata for the file.
+            body = {
+                "title": "document",
+                "description": "a doc",
+            }
+
+            file = service.files().insert(body=body, media_body=media_body).execute()
+            file_title = file.get("title")
+            file_desc = file.get("description")
+            print(
+                f"File is uploaded \nTitle : {file_title}  \nDescription : {file_desc}"
+            )
+
+        except HttpError as error:
+            # TODO(developer) - Handle errors from drive API.
+            print(f"An error occurred: {error}")
+
+        user_data = context.user_data
+        assert user_data is not None
+        user_data.clear()
+
+        return ConversationHandler.END
