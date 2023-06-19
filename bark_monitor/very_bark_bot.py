@@ -1,3 +1,4 @@
+import shutil
 from datetime import timedelta
 from enum import Enum
 from typing import Optional
@@ -383,15 +384,16 @@ class VeryBarkBot:
 
         # Perform the request and print the result.
         try:
+            shutil.make_archive("recordings", "zip", self._recorder.output_folder)
             # Insert a file. Files are comprised of contents and metadata.
             # MediaFileUpload abstracts uploading file contents from a file on disk.
             media_body = googleapiclient.http.MediaFileUpload(
-                "document.txt", mimetype="text/plain", resumable=True
+                "recordings.zip", resumable=True
             )
             # The body contains the metadata for the file.
             body = {
-                "title": "document",
-                "description": "a doc",
+                "title": "recordings",
+                "description": "Archive of watson's recording",
             }
 
             file = service.files().insert(body=body, media_body=media_body).execute()
@@ -408,5 +410,11 @@ class VeryBarkBot:
         user_data = context.user_data
         assert user_data is not None
         user_data.clear()
+
+        assert update.effective_chat is not None
+        await self._application.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Done upload to google drive",
+        )
 
         return ConversationHandler.END
