@@ -1,4 +1,5 @@
 import csv
+import logging
 import tempfile
 from abc import abstractmethod
 from datetime import datetime, timedelta
@@ -155,5 +156,9 @@ class WaveRecorder(BaseRecorder):
             self._save_recording(self._frames)
             self._frames = []
 
-        if self._http_url is not None:
-            requests.post(self._http_url, json=payload)
+        try:
+            if self._http_url is not None:
+                requests.post(self._http_url, json=payload)
+        except Exception as e:
+            self._bark_logger = logging.getLogger("bark_monitor")
+            self._bark_logger.error("Error sending data to http address: ", e)
