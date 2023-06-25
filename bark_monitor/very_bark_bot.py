@@ -1,4 +1,3 @@
-import shutil
 from datetime import timedelta
 from enum import Enum
 from pathlib import Path
@@ -8,9 +7,6 @@ import oauth2client.client
 import requests
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaFileUpload
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -37,7 +33,6 @@ class Commands(Enum):
     )
     register = "Register a new user"
     status = "Status of the recorder"
-    save = "Save to google drive"
     login = "Log in to google drive"
 
     @staticmethod
@@ -91,9 +86,6 @@ class VeryBarkBot:
 
         help_handler = CommandHandler("help", self.help)
         self._application.add_handler(help_handler)
-
-        save_handler = CommandHandler("save", self.save)
-        self._application.add_handler(save_handler)
 
         conv_handler = ConversationHandler(
             entry_points=[CommandHandler("login", self.start_login_to_google_drive)],
@@ -417,35 +409,3 @@ class VeryBarkBot:
                 "token.json", self._scopes
             )
         return False, None
-
-    async def save(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Save recording folder as a zip file in google drive"""
-        assert update.effective_chat is not None
-        got_cred, creds = self._get_cred()
-        if not got_cred:
-            await self._application.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Please login to google first",
-            )
-
-        try:
-            # create drive api client
-            service = build("drive", "v3", credentials=creds)
-
-            shutil.make_archive("recordings", "zip", self._recorder.output_folder)
-            file_metadata = {"name": "recordings.zip"}
-            media = MediaFileUpload("recordings.zip")
-            file = (
-                service.files()
-                .create(body=file_metadata, media_body=media, fields="id")
-                .execute()
-            )
-            await self._application.bot.send_message(
-                chat_id=update.effective_chat.id, text="Saved file " + file.get("id")
-            )
-
-        except HttpError as error:
-            await self._application.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Error upload to google: " + str(error),
-            )

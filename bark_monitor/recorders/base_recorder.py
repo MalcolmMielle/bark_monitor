@@ -8,6 +8,7 @@ from typing import Optional
 
 import pyaudio
 
+from bark_monitor.google_sync import GoogleSync
 from bark_monitor.recorders.recording import Recording
 from bark_monitor.very_bark_bot import VeryBarkBot
 
@@ -53,9 +54,17 @@ class BaseRecorder(ABC):
         self._chat_bot.start()
 
     @property
+    def audio_folder(self) -> Path:
+        return Path(self.output_folder, "audio")
+
+    @property
     def _filename(self) -> Path:
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        filename = Path(Recording.folder(Path(self.output_folder)), now + ".wav")
+        filename = Path(
+            self.audio_folder,
+            datetime.now().strftime("%d-%m-%Y"),
+            now + ".wav",
+        )
         if not filename.parent.exists():
             filename.parent.mkdir(parents=True)
         return filename.absolute()
@@ -73,6 +82,11 @@ class BaseRecorder(ABC):
         self.running = False
         recording = Recording.read(self.output_folder)
         recording.end(datetime.now())
+
+        # Sync with google
+        recording.save_to_google()
+        GoogleSync.save_audio(str(self.audio_folder))
+
         self._stop()
 
     def _stop(self) -> None:
