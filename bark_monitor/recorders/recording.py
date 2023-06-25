@@ -59,6 +59,8 @@ class Recording:
     @property
     def time_barked(self) -> timedelta:
         now = datetime.now().strftime("%d-%m-%Y")
+        if now not in self._time_barked:
+            return timedelta(0)
         return self._time_barked[now]
 
     def add_time_barked(self, value: timedelta, day: Optional[str] = None) -> None:
@@ -92,7 +94,9 @@ class Recording:
     def save(self):
         encoded = jsonpickle.encode(self, keys=True)
         assert encoded is not None
-        with open(str(self._path), "w") as outfile:
+        if not self._path.exists():
+            self._path.mkdir(parents=True, exist_ok=True)
+        with self._path.open(mode="w") as outfile:
             outfile.write(encoded)
 
     def save_to_google(self):
@@ -115,7 +119,7 @@ class Recording:
         """
         state = Recording(cls.__create_key, output_folder)
         if state._path.exists():
-            with open(state._path, "r") as file:
+            with state._path.open(mode="r") as file:
                 lines = file.read()
                 state: "Recording" = jsonpickle.decode(lines, keys=True)  # type: ignore
 
