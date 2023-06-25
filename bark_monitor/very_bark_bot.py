@@ -1,14 +1,16 @@
 import shutil
 from datetime import timedelta
 from enum import Enum
+from pathlib import Path
 from typing import Optional
 
-import googleapiclient.http
-import httplib2
 import oauth2client.client
 import requests
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaFileUpload
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -36,6 +38,7 @@ class Commands(Enum):
     register = "Register a new user"
     status = "Status of the recorder"
     save = "Save to google drive"
+    login = "Log in to google drive"
 
     @staticmethod
     def help_message() -> str:
@@ -89,17 +92,25 @@ class VeryBarkBot:
         help_handler = CommandHandler("help", self.help)
         self._application.add_handler(help_handler)
 
+        save_handler = CommandHandler("save", self.save)
+        self._application.add_handler(save_handler)
+
         conv_handler = ConversationHandler(
-            entry_points=[CommandHandler("save", self.start_conv)],
+            entry_points=[CommandHandler("login", self.start_login_to_google_drive)],
             states={
                 0: [
                     MessageHandler(
                         filters.TEXT,
-                        self.received_information,
+                        self.create_credential_from_code,
                     ),
                 ],
+                1: [MessageHandler(filters.TEXT, self.already_loged_in_google_drive)],
             },
-            fallbacks=[MessageHandler(filters.Regex("^Done$"), self.start_conv)],
+            fallbacks=[
+                MessageHandler(
+                    filters.Regex("^Done$"), self.start_login_to_google_drive
+                )
+            ],
         )
 
         self._application.add_handler(conv_handler)
@@ -107,6 +118,7 @@ class VeryBarkBot:
         self._accept_new_users = accept_new_users
 
         self._recorder = recorder
+        self._scopes = ["https://www.googleapis.com/auth/drive.file"]
         self._code_google_drive: Optional[str] = None
         self.flow = None
 
@@ -332,21 +344,17 @@ class VeryBarkBot:
             text=help_message,
         )
 
-    async def start_conv(
+    async def start_login_to_google_drive(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
-        """Start the conversation and ask user for input."""
+        """Start the conversation to save file on Google Drive"""
 
-        # OAuth 2.0 scope that will be authorized.
-        # Check https://developers.google.com/drive/scopes for all available scopes.
-        OAUTH2_SCOPE = "https://www.googleapis.com/auth/drive"
+        got_cred, _ = self._get_cred()
+        if got_cred:
+            return 1
 
-        # Location of the client secrets.
-        CLIENT_SECRETS = "client_secrets.json"
-
-        # Perform OAuth2.0 authorization flow.
         self.flow = oauth2client.client.flow_from_clientsecrets(
-            CLIENT_SECRETS, OAUTH2_SCOPE
+            "credentials.json", self._scopes
         )
         self.flow.redirect_uri = oauth2client.client.OOB_CALLBACK_URN
         authorize_url = self.flow.step1_get_authorize_url()
@@ -356,14 +364,21 @@ class VeryBarkBot:
             + authorize_url
             + " and enter the code",
         )
-
         return 0
 
-    async def received_information(
+    async def already_loged_in_google_drive(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
-        """Store info provided by user and ask for the next category."""
+        assert update.message is not None
+        await update.message.reply_text(
+            "Already loged in",
+        )
+        return ConversationHandler.END
 
+    async def create_credential_from_code(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> int:
+        """Create credential for google drive from received code in previous step"""
         assert update.message is not None
 
         text = update.message.text
@@ -374,47 +389,63 @@ class VeryBarkBot:
         )
 
         assert self.flow is not None
-        credentials = self.flow.step2_exchange(text)
-
-        # Create an authorized Drive API client.
-        http = httplib2.Http()
-        credentials.authorize(http)
-
-        service = build("drive", "v2", http=http)
-
-        # Perform the request and print the result.
-        try:
-            shutil.make_archive("recordings", "zip", self._recorder.output_folder)
-            # Insert a file. Files are comprised of contents and metadata.
-            # MediaFileUpload abstracts uploading file contents from a file on disk.
-            media_body = googleapiclient.http.MediaFileUpload(
-                "recordings.zip", resumable=True
-            )
-            # The body contains the metadata for the file.
-            body = {
-                "title": "recordings",
-                "description": "Archive of watson's recording",
-            }
-
-            file = service.files().insert(body=body, media_body=media_body).execute()
-            file_title = file.get("title")
-            file_desc = file.get("description")
-            print(
-                f"File is uploaded \nTitle : {file_title}  \nDescription : {file_desc}"
-            )
-
-        except HttpError as error:
-            # TODO(developer) - Handle errors from drive API.
-            print(f"An error occurred: {error}")
-
-        user_data = context.user_data
-        assert user_data is not None
-        user_data.clear()
+        creds = self.flow.step2_exchange(text)
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())
 
         assert update.effective_chat is not None
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Done upload to google drive",
+            text="Login to Google",
         )
 
         return ConversationHandler.END
+
+    def _get_cred(self) -> tuple[bool, Optional[Credentials]]:
+        """Check if connected to google drive already"""
+        creds = None
+        if Path("token.json").exists():
+            creds = Credentials.from_authorized_user_file("token.json", self._scopes)
+        # If there are no (valid) credentials available, let the user log in.
+        if creds and creds.valid:
+            return True, Credentials.from_authorized_user_file(
+                "token.json", self._scopes
+            )
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            return True, Credentials.from_authorized_user_file(
+                "token.json", self._scopes
+            )
+        return False, None
+
+    async def save(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Save recording folder as a zip file in google drive"""
+        assert update.effective_chat is not None
+        got_cred, creds = self._get_cred()
+        if not got_cred:
+            await self._application.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Please login to google first",
+            )
+
+        try:
+            # create drive api client
+            service = build("drive", "v3", credentials=creds)
+
+            shutil.make_archive("recordings", "zip", self._recorder.output_folder)
+            file_metadata = {"name": "recordings.zip"}
+            media = MediaFileUpload("recordings.zip")
+            file = (
+                service.files()
+                .create(body=file_metadata, media_body=media, fields="id")
+                .execute()
+            )
+            await self._application.bot.send_message(
+                chat_id=update.effective_chat.id, text="Saved file " + file.get("id")
+            )
+
+        except HttpError as error:
+            await self._application.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Error upload to google: " + str(error),
+            )
