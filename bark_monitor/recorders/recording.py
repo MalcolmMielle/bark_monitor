@@ -94,8 +94,8 @@ class Recording:
     def save(self):
         encoded = jsonpickle.encode(self, keys=True)
         assert encoded is not None
-        if not self._path.exists():
-            self._path.mkdir(parents=True, exist_ok=True)
+        if not self.output_folder.exists():
+            self.output_folder.mkdir(parents=True, exist_ok=True)
         with self._path.open(mode="w") as outfile:
             outfile.write(encoded)
 

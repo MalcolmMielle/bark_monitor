@@ -161,4 +161,7 @@ class WaveRecorder(BaseRecorder):
                 requests.post(self._http_url, json=payload)
         except Exception as e:
             self._bark_logger = logging.getLogger("bark_monitor")
-            self._bark_logger.error("Error sending data to http address: ", e)
+            assert self._http_url is not None
+            self._bark_logger.error(
+                "Error " + str(e) + "sending data to http address: " + self._http_url
+            )
