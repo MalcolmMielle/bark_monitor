@@ -442,7 +442,9 @@ Contribution to make this system better are welcomed but it works for me so I wo
 <h2 id="set-up-credentials">Set up credentials</h2>
 <p>To enable the bark_monitor to save to your google drive, follow this <a href="https://developers.google.com/drive/api/quickstart/python">tutorial</a> to enable the Google API and configure the OAuth consent screen of your app.
 At the end of the process you should get a <code>credentials.json</code>.
-When launching the program, point to this file with <code>bark-monitor --google-creds &gt;path to credentials.json&gt;</code>.</p>
+Add the path to the credentials file in the <a href="../record/#set-up-the-configuration-file">config</a> for the key:</p>
+<pre><code class="language-json">&quot;google credentials&quot;: &quot;clients_secrets.json&quot;
+</code></pre>
 <p>You can now send <code>/login</code> to the bot to connect to your google drive account and enable automatic saves.</p>
 
 
