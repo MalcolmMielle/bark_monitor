@@ -12,10 +12,7 @@ class Recorder(BaseRecorder):
 
     def __init__(
         self,
-        api_key: str,
-        config_folder: str,
         output_folder: str,
-        accept_new_users: bool = False,
     ) -> None:
         self._bark_level: int = 0
 
@@ -23,9 +20,7 @@ class Recorder(BaseRecorder):
         self.is_paused = False
 
         self._last_bark = datetime.now()
-        super().__init__(
-            api_key, config_folder, output_folder, accept_new_users=accept_new_users
-        )
+        super().__init__(output_folder)
 
     @property
     def bark_level(self) -> Optional[int]:

@@ -14,13 +14,12 @@ from bark_monitor.very_bark_bot import VeryBarkBot
 
 
 class BaseRecorder(ABC):
+    _chat_bot: VeryBarkBot
+
     def __init__(
         self,
-        api_key: str,
-        config_folder: str,
         output_folder: str,
         framerate: int = 44100,
-        accept_new_users: bool = False,
         chunk: int = 4096,
     ) -> None:
         self.running = False
@@ -43,15 +42,10 @@ class BaseRecorder(ABC):
         self.output_folder = output_folder
 
         self._bark_logger.info("Starting bot")
-        self._chat_bot = VeryBarkBot(
-            api_key=api_key,
-            config_folder=config_folder,
-            recorder=self,
-            accept_new_users=accept_new_users,
-        )
 
-    def start_bot(self) -> None:
-        self._chat_bot.start()
+    def start_bot(self, bot: VeryBarkBot) -> None:
+        self._chat_bot = bot
+        self._chat_bot.start(self)
 
     @property
     def audio_folder(self) -> Path:

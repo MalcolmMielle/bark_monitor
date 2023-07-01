@@ -18,10 +18,7 @@ class YamnetRecorder(WaveRecorder):
 
     def __init__(
         self,
-        api_key: str,
-        config_folder: str,
         output_folder: str,
-        accept_new_users: bool = False,
         sampling_time_bark_seconds: int = 1,
         http_url: Optional[str] = None,
         framerate: int = 16000,
@@ -39,10 +36,7 @@ class YamnetRecorder(WaveRecorder):
         self._class_names = WaveRecorder.class_names_from_csv(class_map_path)
 
         super().__init__(
-            api_key,
-            config_folder,
             output_folder,
-            accept_new_users,
             sampling_time_bark_seconds,
             http_url,
             framerate,

@@ -44,12 +44,14 @@ class Commands(Enum):
 
 
 class VeryBarkBot:
+    _recorder: "BaseRecorder"  # noqa: F821
+
     def __init__(
         self,
         api_key: str,
         config_folder: str,
-        recorder: "BaseRecorder",  # noqa F821
         accept_new_users: bool = False,
+        google_creds: Optional[str] = None,
     ) -> None:
         self._api_key = api_key
 
@@ -63,6 +65,7 @@ class VeryBarkBot:
         )
 
         self._config_folder = config_folder
+        self._google_cred = google_creds
 
         register_handler = CommandHandler("register", self.register)
         self._application.add_handler(register_handler)
@@ -109,12 +112,13 @@ class VeryBarkBot:
 
         self._accept_new_users = accept_new_users
 
-        self._recorder = recorder
         self._scopes = ["https://www.googleapis.com/auth/drive.file"]
         self._code_google_drive: Optional[str] = None
         self.flow = None
 
-    def start(self) -> None:
+    def start(self, recorder: "BaseRecorder") -> None:
+        self._recorder = recorder
+
         chats = Chats.read(self._config_folder)
         for chat in chats.chats:
             url = (
@@ -341,12 +345,28 @@ class VeryBarkBot:
     ) -> int:
         """Start the conversation to save file on Google Drive"""
 
+        assert update.message is not None
         got_cred, _ = self._get_cred()
         if got_cred:
             return 1
 
+        if self._google_cred is None:
+            await update.message.reply_text(
+                "No credential file."
+                "See https://malcolmmielle.codeberg.page/bark_monitor/@pages/google_sync/",  # noqa: E501
+            )
+            return ConversationHandler.END
+
+        if not Path(self._google_cred).exists():
+            await update.message.reply_text(
+                str(Path(self._google_cred).absolute())
+                + " does not exist on the system. "
+                "See https://malcolmmielle.codeberg.page/bark_monitor/@pages/google_sync/",  # noqa: E501
+            )
+            return ConversationHandler.END
+
         self.flow = oauth2client.client.flow_from_clientsecrets(
-            "credentials.json", self._scopes
+            self._google_cred, self._scopes
         )
         self.flow.redirect_uri = oauth2client.client.OOB_CALLBACK_URN
         authorize_url = self.flow.step1_get_authorize_url()

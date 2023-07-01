@@ -67,7 +67,7 @@ class GoogleSync:
         try:
             got_creds, creds = GoogleSync._get_cred()
             if not got_creds:
-                bark_logger.warning("Connect to google")
+                bark_logger.warning("Connect to google to trigger sync to drive")
                 return
             # create drive api client
             service = build("drive", "v3", credentials=creds)

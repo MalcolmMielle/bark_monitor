@@ -20,10 +20,7 @@ class WaveRecorder(BaseRecorder):
 
     def __init__(
         self,
-        api_key: str,
-        config_folder: str,
         output_folder: str,
-        accept_new_users: bool = False,
         sampling_time_bark_seconds: Optional[int] = 1,
         http_url: Optional[str] = None,
         framerate: int = 16000,
@@ -59,11 +56,8 @@ class WaveRecorder(BaseRecorder):
         ]
 
         super().__init__(
-            api_key=api_key,
-            config_folder=config_folder,
             output_folder=output_folder,
             framerate=framerate,
-            accept_new_users=accept_new_users,
             chunk=chunk,
         )
 

@@ -14,10 +14,7 @@ class YamnetLiteRecorder(WaveRecorder):
 
     def __init__(
         self,
-        api_key: str,
-        config_folder: str,
         output_folder: str,
-        accept_new_users: bool = False,
         http_url: Optional[str] = None,
         framerate: int = 16000,
     ) -> None:
@@ -34,10 +31,7 @@ class YamnetLiteRecorder(WaveRecorder):
         self._scores_output_index = output_details[0]["index"]
 
         super().__init__(
-            api_key=api_key,
-            config_folder=config_folder,
             output_folder=output_folder,
-            accept_new_users=accept_new_users,
             sampling_time_bark_seconds=None,
             http_url=http_url,
             framerate=framerate,
