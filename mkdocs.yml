@@ -8,6 +8,7 @@ nav:
     - Telegram bot: telegram_bot.md
     - Record your dog: record.md
     - Thingsboard: thingsboard.md
+    - Google drive sync: google_sync.md
 theme:
   name: material
   palette:

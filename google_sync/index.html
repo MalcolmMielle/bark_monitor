@@ -8,20 +8,18 @@
       
       
       
-        <link rel="canonical" href="https://malcolmmielle.codeberg.page/bark_monitor/@pages/install/">
+        <link rel="canonical" href="https://malcolmmielle.codeberg.page/bark_monitor/@pages/google_sync/">
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../thingsboard/">
       
-      
-        <link rel="next" href="../raspberrypi/">
       
       <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.17">
     
     
       
-        <title>Install python program - Bark monitor</title>
+        <title>Google drive sync - Bark monitor</title>
       
     
     
@@ -69,7 +67,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#install" class="md-skip">
+        <a href="#sync-with-google-drive" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Install python program
+              Google drive sync
             
           </span>
         </div>
@@ -229,16 +227,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
       
       
       
@@ -247,7 +243,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
           Install
@@ -258,21 +254,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../install/" class="md-nav__link">
         Install python program
       </a>
-      
     </li>
   
 
@@ -349,11 +335,52 @@
 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../google_sync/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Google drive sync
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Google drive sync
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#set-up-credentials" class="md-nav__link">
+    Set up credentials
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -378,6 +405,21 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#set-up-credentials" class="md-nav__link">
+    Set up credentials
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -391,19 +433,17 @@
                   
 
 
-<h1 id="install">Install</h1>
-<p>The bark monitor relies on pyaudio and portaudio.
-Start by installing gcc/g++ and portaudio.
-On Ubuntu:</p>
-<pre><code class="language-bash">sudo apt install build-essential
-sudo apt-get install portaudio19-dev
-</code></pre>
-<p>Install with tensorflow for Deep Learning based detection using <a href="https://www.tensorflow.org/hub/tutorials/yamnet">Yamnet</a>:</p>
-<p><code>pip install .[ml]</code></p>
-<p>Install without tensorflow to use amplitude based detection:</p>
-<p><code>pip install .</code></p>
-<p>Tested with python 3.9, should work with higher versions too.</p>
-<p>To run the unit tests and be able to contribute, install the package in editable mode using the <code>-e</code> option for pip.</p>
+<h1 id="sync-with-google-drive">Sync with google drive</h1>
+<p>It is possible to save the recordings to google drive automatically although the feature is very experimental.</p>
+<p>When used, the config file of dog activities and recording time will be safe and "sync" with your google drive as a json.</p>
+<p>On the other hand, audio recordings also will be saved but the code will <strong>erase</strong> current audio saved on the drive!
+There is "merging" ability to save the audio since they are simply uploaded as a zip folder.
+Contribution to make this system better are welcomed but it works for me so I won't change it myself :).</p>
+<h2 id="set-up-credentials">Set up credentials</h2>
+<p>To enable the bark_monitor to save to your google drive, follow this <a href="https://developers.google.com/drive/api/quickstart/python">tutorial</a> to enable the Google API and configure the OAuth consent screen of your app.
+At the end of the process you should get a <code>credentials.json</code>.
+When launching the program, point to this file with <code>bark-monitor --google-creds &gt;path to credentials.json&gt;</code>.</p>
+<p>You can now send <code>/login</code> to the bot to connect to your google drive account and enable automatic saves.</p>
 
 
 

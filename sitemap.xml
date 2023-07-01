@@ -6,6 +6,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://malcolmmielle.codeberg.page/bark_monitor/@pages/google_sync/</loc>
+         <lastmod>2023-07-01</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://malcolmmielle.codeberg.page/bark_monitor/@pages/install/</loc>
          <lastmod>2023-07-01</lastmod>
          <changefreq>daily</changefreq>
