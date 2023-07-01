@@ -1,0 +1,7 @@
+site_name: Bark monitor
+site_url: https://malcolmmielle.codeberg.page/bark_monitor/@pages
+nav:
+    - Home: index.md
+    - Install: install.md
+theme:
+  name: material
