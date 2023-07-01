@@ -1,10 +1,12 @@
 # Bark monitor
 
-[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bark-monitor)
+<!-- [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bark-monitor) -->
 
-![](images/watson.jpg)
+![my dog](https://codeberg.org/MalcolmMielle/bark_monitor/raw/commit/990ab48c7e4f3110a8f10b4d4eed4c209d43b81b/images/watson.jpg)
 
 Showing my neighbor my dog doesn't bark!
+
+Get it today: `pip install bark-monitor`.
 
 ## Introduction
 
