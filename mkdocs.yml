@@ -2,6 +2,18 @@ site_name: Bark monitor
 site_url: https://malcolmmielle.codeberg.page/bark_monitor/@pages
 nav:
     - Home: index.md
-    - Install: install.md
+    - Install:
+        - 'Install python program': 'install.md'
+        - 'Raspberry pi': 'raspberrypi.md'
+    - Telegram bot: telegram_bot.md
+    - Record your dog: record.md
+    - Thingsboard: thingsboard.md
 theme:
   name: material
+  palette:
+    primary: orange
+  icon:
+    logo: material/dog
+
+repo_url: https://codeberg.org/MalcolmMielle/bark_monitor
+repo_name: MalcolmMielle/bark_monitor

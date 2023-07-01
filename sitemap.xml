@@ -1,12 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://bark-monitor.com/</loc>
+         <loc>https://malcolmmielle.codeberg.page/bark_monitor/@pages/</loc>
          <lastmod>2023-07-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bark-monitor.com/install/</loc>
+         <loc>https://malcolmmielle.codeberg.page/bark_monitor/@pages/install/</loc>
+         <lastmod>2023-07-01</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://malcolmmielle.codeberg.page/bark_monitor/@pages/raspberrypi/</loc>
+         <lastmod>2023-07-01</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://malcolmmielle.codeberg.page/bark_monitor/@pages/record/</loc>
+         <lastmod>2023-07-01</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://malcolmmielle.codeberg.page/bark_monitor/@pages/telegram_bot/</loc>
+         <lastmod>2023-07-01</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://malcolmmielle.codeberg.page/bark_monitor/@pages/thingsboard/</loc>
          <lastmod>2023-07-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
