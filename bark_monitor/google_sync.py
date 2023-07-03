@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -29,10 +30,13 @@ class GoogleSync:
                 "token.json", GoogleSync.scopes
             )
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-            return True, Credentials.from_authorized_user_file(
-                "token.json", GoogleSync.scopes
-            )
+            try:
+                creds.refresh(Request())
+                return True, Credentials.from_authorized_user_file(
+                    "token.json", GoogleSync.scopes
+                )
+            except RefreshError:
+                return False, None
         return False, None
 
     @staticmethod
