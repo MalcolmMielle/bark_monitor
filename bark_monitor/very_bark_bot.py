@@ -354,7 +354,7 @@ class VeryBarkBot:
         """Start the conversation to save file on Google Drive"""
 
         assert update.message is not None
-        got_cred, _ = self._get_cred()
+        got_cred, _ = GoogleSync.get_cred()
         if got_cred:
             return 1
 
@@ -420,20 +420,3 @@ class VeryBarkBot:
         )
 
         return ConversationHandler.END
-
-    def _get_cred(self) -> tuple[bool, Optional[Credentials]]:
-        """Check if connected to google drive already"""
-        creds = None
-        if Path("token.json").exists():
-            creds = Credentials.from_authorized_user_file("token.json", self._scopes)
-        # If there are no (valid) credentials available, let the user log in.
-        if creds and creds.valid:
-            return True, Credentials.from_authorized_user_file(
-                "token.json", self._scopes
-            )
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-            return True, Credentials.from_authorized_user_file(
-                "token.json", self._scopes
-            )
-        return False, None
