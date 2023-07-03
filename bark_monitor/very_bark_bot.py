@@ -18,6 +18,7 @@ from telegram.ext import (
 )
 
 from bark_monitor.chats import Chats
+from bark_monitor.google_sync import GoogleSync
 from bark_monitor.recorders.recording import Recording
 
 
@@ -250,8 +251,15 @@ class VeryBarkBot:
             if self._recorder.is_paused:
                 status = "The program is paused. "
 
+        connected_to_google = "Not connected to google"
+        got_cred, _ = GoogleSync.get_cred()
+        if got_cred:
+            connected_to_google = "Connected to google"
+
         recording = Recording.read(self._recorder.output_folder)
-        status += "Time barked: " + str(recording.time_barked)
+        status += (
+            "Time barked: " + str(recording.time_barked) + " -- " + connected_to_google
+        )
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text=status,

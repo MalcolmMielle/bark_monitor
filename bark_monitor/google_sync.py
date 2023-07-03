@@ -17,7 +17,7 @@ class GoogleSync:
     _file_name = "recordings.json"
 
     @staticmethod
-    def _get_cred() -> tuple[bool, Optional[Credentials]]:
+    def get_cred() -> tuple[bool, Optional[Credentials]]:
         """Check if connected to google drive already"""
         creds = None
         if Path("token.json").exists():
@@ -69,7 +69,7 @@ class GoogleSync:
     def update_file(file_path: Path) -> None:
         bark_logger = logging.getLogger("bark_monitor")
         try:
-            got_creds, creds = GoogleSync._get_cred()
+            got_creds, creds = GoogleSync.get_cred()
             if not got_creds:
                 bark_logger.warning("Connect to google to trigger sync to drive")
                 return
@@ -106,7 +106,7 @@ class GoogleSync:
     @staticmethod
     def load_state() -> Optional[bytes]:
         """Load the recording state stored in the "recording.json" file"""
-        got_creds, creds = GoogleSync._get_cred()
+        got_creds, creds = GoogleSync.get_cred()
         bark_logger = logging.getLogger("bark_monitor")
         if not got_creds:
             bark_logger.warning("Connect to google")
