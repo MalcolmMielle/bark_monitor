@@ -100,7 +100,6 @@ class GoogleSync:
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-            print(f"Download {int(status.progress() * 100)}.")
         return file.getvalue()
 
     @staticmethod
