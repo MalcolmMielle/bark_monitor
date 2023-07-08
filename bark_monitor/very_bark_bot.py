@@ -343,6 +343,12 @@ class VeryBarkBot:
         assert update.message.text is not None
         audio_folder = self._recorder.today_audio_folder
 
+        if not audio_folder.exists() or len(audio_folder.iterdir()) == 0:
+            await update.message.reply_text(
+                "No recording today. Your dog has been a good boy :3"
+            )
+            return
+
         split_command = update.message.text.split(" ", 1)
         if len(split_command) == 1:
             await update.message.reply_text("no file specified.")
