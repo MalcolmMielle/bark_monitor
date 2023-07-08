@@ -5,8 +5,6 @@ from typing import Optional
 
 import oauth2client.client
 import requests
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -35,6 +33,10 @@ class Commands(Enum):
     register = "Register a new user"
     status = "Status of the recorder"
     login = "Log in to google drive"
+    audio = (
+        "Send an audio file based on file name. If used without a file name, it "
+        + "will list the available files"
+    )
 
     @staticmethod
     def help_message() -> str:
@@ -90,6 +92,9 @@ class VeryBarkBot:
 
         help_handler = CommandHandler("help", self.help)
         self._application.add_handler(help_handler)
+
+        audio_handler = CommandHandler("audio", self.send_audio)
+        self._application.add_handler(audio_handler)
 
         conv_handler = ConversationHandler(
             entry_points=[CommandHandler("login", self.start_login_to_google_drive)],
@@ -307,35 +312,52 @@ class VeryBarkBot:
             )
 
     def send_bark(self, intensity: int) -> None:
+        self.send_text("bark: " + str(intensity))
+
+    def send_text(self, text: str) -> None:
         chats = Chats.read(self._config_folder)
         for chat in chats.chats:
             url = (
                 f"https://api.telegram.org/"
                 f"bot{self._api_key}/"
-                f"sendMessage?chat_id={chat}&text=bark: " + str(intensity)
+                f"sendMessage?chat_id={chat}&text=" + text
             )
             requests.get(url).json()
 
     def send_end_bark(self, time_barking: timedelta) -> None:
-        chats = Chats.read(self._config_folder)
-        for chat in chats.chats:
-            url = (
-                f"https://api.telegram.org/"
-                f"bot{self._api_key}/"
-                f"sendMessage?chat_id={chat}&text=barking stopped after: "
-                + str(time_barking)
-            )
-            requests.get(url).json()
+        self.send_text("barking stopped after: " + str(time_barking))
 
-    def send_event(self, event_type: str) -> None:
-        chats = Chats.read(self._config_folder)
-        for chat in chats.chats:
-            url = (
-                f"https://api.telegram.org/"
-                f"bot{self._api_key}/"
-                f"sendMessage?chat_id={chat}&text=detected: " + event_type
+    async def send_audio(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        async def error_message_audio_file(update: Update) -> None:
+            assert update.message is not None
+            await update.message.reply_text("Recordings of today:")
+            file_str = ""
+            for file in audio_folder.iterdir():
+                file_str += "\n* " + str(file.name)
+            await update.message.reply_text(file_str)
+
+        assert update.message is not None
+        assert update.message.text is not None
+        audio_folder = self._recorder.today_audio_folder
+
+        split_command = update.message.text.split(" ", 1)
+        if len(split_command) == 1:
+            await update.message.reply_text("no file specified.")
+            await error_message_audio_file(update)
+            return
+
+        audio_file = Path(audio_folder, split_command[1])
+        if not audio_file.exists():
+            await update.message.reply_text(
+                "Audio file " + str(audio_file) + " does not exists."
             )
-            requests.get(url).json()
+            await error_message_audio_file(update)
+            return
+
+        with open(audio_file, mode="rb") as audio:
+            await update.message.reply_audio(audio=audio)
 
     async def help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         assert update.effective_chat is not None

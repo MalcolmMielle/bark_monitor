@@ -52,11 +52,17 @@ class BaseRecorder(ABC):
         return Path(self.output_folder, "audio")
 
     @property
+    def today_audio_folder(self) -> Path:
+        return Path(
+            self.audio_folder,
+            datetime.now().strftime("%d-%m-%Y"),
+        )
+
+    @property
     def _filename(self) -> Path:
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         filename = Path(
-            self.audio_folder,
-            datetime.now().strftime("%d-%m-%Y"),
+            self.today_audio_folder,
             now + ".wav",
         )
         if not filename.parent.exists():
@@ -88,26 +94,38 @@ class BaseRecorder(ABC):
             return
         self._t.join()
 
-    def _save_recording(
-        self, frames: list[bytes], filename: Optional[Path] = None
-    ) -> Path:
-        """Save a recording of `frames` to `filename`.
-
-        If `filename` is None, it defaults to the config location with a datetime.
+    def _save_recording(self, frames: list[bytes], prefix: str | None = None) -> Path:
+        """Save a recording of `frames` to `self._filename`.
 
         :return: the path at which the recording is saved.
         """
-        if filename is None:
-            filename = self._filename
+        filepath = self._filename
+        if prefix is not None:
+            filepath = Path(self.today_audio_folder, prefix + " " + self._filename.name)
+        file = self._save_recording_to(frames, filepath)
+        self._chat_bot.send_text(
+            "Save file: "
+            + str(filepath)
+            + ".\nDownload it with \n\n ```\n/audio "
+            + filepath.name
+            + "\n```"
+        )
+        return file
+
+    def _save_recording_to(self, frames: list[bytes], filepath: Path) -> Path:
+        """Save a recording of `frames` to `filepath`.
+
+        :return: the path at which the recording is saved.
+        """
         # Save the recorded data as a WAV file
         assert self._pyaudio_interface is not None
-        wf = wave.open(str(filename), "wb")
+        wf = wave.open(str(filepath), "wb")
         wf.setnchannels(self._channels)
         wf.setsampwidth(self._pyaudio_interface.get_sample_size(self._sample_format))
         wf.setframerate(self._fs)
         wf.writeframes(b"".join(frames))
         wf.close()
-        return filename
+        return filepath
 
     def _start_stream(self) -> None:
         self._pyaudio_interface = pyaudio.PyAudio()  # Create an interface to PortAudio

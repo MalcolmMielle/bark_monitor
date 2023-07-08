@@ -112,7 +112,7 @@ class WaveRecorder(BaseRecorder):
                 continue
 
             with tempfile.TemporaryDirectory() as tmpdirname:
-                nn_recording = self._save_recording(
+                nn_recording = self._save_recording_to(
                     self._nn_frames, Path(tmpdirname, "rec.wav")
                 )
                 self._analyse_recording(nn_recording)
@@ -131,7 +131,7 @@ class WaveRecorder(BaseRecorder):
         if label in self._animal_labels:
             payload[label] = 1
             # notify
-            self._chat_bot.send_event(label)
+            self._chat_bot.send_text("detected: " + label)
 
             # save all frame to make one large recording
             self._frames += self._nn_frames
@@ -147,7 +147,14 @@ class WaveRecorder(BaseRecorder):
             recording.add_activity(datetime.now(), label)
 
         elif len(self._frames) > 0:
-            self._save_recording(self._frames)
+            recording = Recording.read(self.output_folder)
+            label = ""
+            time = None
+            for key in recording.activity_tracker:
+                if time is None or time < key:
+                    time = key
+                    label = recording.activity_tracker[key]
+            self._save_recording(self._frames, label)
             self._frames = []
 
         try:
