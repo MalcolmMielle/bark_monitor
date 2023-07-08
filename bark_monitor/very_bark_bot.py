@@ -334,10 +334,8 @@ class VeryBarkBot:
         async def error_message_audio_file(update: Update) -> None:
             assert update.message is not None
             await update.message.reply_text("Recordings of today:")
-            file_str = ""
             for file in audio_folder.iterdir():
-                file_str += "\n* " + str(file.name)
-            await update.message.reply_text(file_str)
+                await update.message.reply_text("/audio " + file.name)
 
         assert update.message is not None
         assert update.message.text is not None
