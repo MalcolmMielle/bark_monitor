@@ -278,16 +278,17 @@ class VeryBarkBot:
             return
 
         recording = Recording.read(self._recorder.output_folder)
-        if len(recording.activity_tracker) == 0:
+        activities = recording.daily_activities_formated()
+
+        if activities == "":
             await self._application.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="No activities today",
             )
             return
 
-        activities = "Activities:\n"
-        for datetime, activity in recording.activity_tracker.items():
-            activities += datetime.strftime("%H %M %S") + ": " + activity + "\n"
+        activities = "Activities:\n" + activities
+
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text=activities,

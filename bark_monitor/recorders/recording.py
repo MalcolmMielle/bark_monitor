@@ -36,6 +36,13 @@ class Recording:
         self._output_folder = output_folder
         self.save()
 
+    def daily_activities_formated(self) -> str:
+        activities = ""
+        for a_datetime, activity in self.activity_tracker.items():
+            if a_datetime.date() == datetime.today().date():
+                activities += a_datetime.strftime("%H %M %S") + ": " + activity + "\n"
+        return activities
+
     @property
     def activity_tracker(self) -> dict[datetime, str]:
         return self._activity_tracker
