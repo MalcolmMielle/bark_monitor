@@ -38,6 +38,8 @@ class Commands(Enum):
         + "will list the available files"
     )
 
+    last = "Download last recording"
+
     @staticmethod
     def help_message() -> str:
         msg = ""
@@ -95,6 +97,8 @@ class VeryBarkBot:
 
         audio_handler = CommandHandler("audio", self.send_audio)
         self._application.add_handler(audio_handler)
+        last_audio_handler = CommandHandler("last", self.last_audio)
+        self._application.add_handler(last_audio_handler)
 
         conv_handler = ConversationHandler(
             entry_points=[CommandHandler("login", self.start_login_to_google_drive)],
@@ -331,6 +335,10 @@ class VeryBarkBot:
     async def send_audio(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
+        assert update.effective_chat is not None
+        if not await self._is_registered(update.effective_chat.id, context):
+            return
+
         async def error_message_audio_file(update: Update) -> None:
             assert update.message is not None
             await update.message.reply_text("Recordings of today:")
@@ -360,6 +368,21 @@ class VeryBarkBot:
             )
             await error_message_audio_file(update)
             return
+
+        with open(audio_file, mode="rb") as audio:
+            await update.message.reply_audio(audio=audio)
+
+    async def last_audio(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        assert update.message is not None
+        assert update.effective_chat is not None
+        if not await self._is_registered(update.effective_chat.id, context):
+            return
+
+        audio_folder = self._recorder.today_audio_folder
+        audio_files = audio_folder.glob("*")
+        audio_file = max(audio_files, key=lambda p: p.stat().st_ctime)
 
         with open(audio_file, mode="rb") as audio:
             await update.message.reply_audio(audio=audio)
