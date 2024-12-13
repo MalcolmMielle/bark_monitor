@@ -20,6 +20,7 @@ class Recording:
         self._start: Optional[datetime] = None
         self._start_end: list[tuple[datetime, Optional[datetime]]] = []
         self._time_barked: dict[str, timedelta] = {}
+        self._time_barked["today"] = timedelta()
         self._output_folder = Path(output_folder).absolute()
         self._activity_tracker: dict[datetime, str] = {}
 
@@ -132,9 +133,7 @@ class Recording:
 
         past_state_bytes = GoogleSync.load_state()
         if past_state_bytes is not None:
-            old_state: "Recording" = jsonpickle.decode(
-                past_state_bytes, keys=True
-            )  # type: ignore
+            old_state: "Recording" = jsonpickle.decode(past_state_bytes, keys=True)  # type: ignore
             state.merge(old_state)
 
         return state
