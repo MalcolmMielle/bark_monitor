@@ -11,7 +11,7 @@ from bark_monitor.recorders.recording import Recording
 class TestRecording(unittest.TestCase):
     def test_goal(self) -> None:
         recording = Recording.read("tests/data")
-        self.assertEqual(recording.time_barked, timedelta(23))
+        self.assertEqual(recording._time_barked["today"], timedelta(2))
         self.assertEqual(len(recording.start_end), 1)
         self.assertEqual(
             recording.start_end[0],

@@ -4,24 +4,46 @@
     "_start_end": [
         {
             "py/tuple": [
-                "19:39:32.163523",
-                "20:04:41.614984"
+                {
+                    "py/object": "datetime.datetime",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.datetime"
+                        },
+                        [
+                            "B+cGGRI2Iw1m3w=="
+                        ]
+                    ]
+                },
+                {
+                    "py/object": "datetime.datetime",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.datetime"
+                        },
+                        [
+                            "B+cGGRI2KApcDg=="
+                        ]
+                    ]
+                }
             ]
         }
     ],
     "_time_barked": {
-        "py/reduce": [
-            {
-                "py/type": "datetime.timedelta"
-            },
-            {
-                "py/tuple": [
-                    2,
-                    0,
-                    0
-                ]
-            }
-        ]
+        "today": {
+            "py/reduce": [
+                {
+                    "py/type": "datetime.timedelta"
+                },
+                {
+                    "py/tuple": [
+                        2,
+                        0,
+                        0
+                    ]
+                }
+            ]
+        }
     },
     "_output_folder": {
         "py/reduce": [
@@ -30,17 +52,14 @@
             },
             {
                 "py/tuple": [
-                    "/",
-                    "home",
-                    "ubuntu",
-                    "bark_monitor",
-                    "recordings"
+                    "tests",
+                    "data"
                 ]
             }
         ]
     },
     "_activity_tracker": {
-        "datetime.datetime(2023, 1, 1, 0, 0)": "test activity",
-        "datetime.datetime(2023, 1, 2, 0, 0)": "test activity"
+        "json://{\"py/object\": \"datetime.datetime\", \"__reduce__\": [{\"py/type\": \"datetime.datetime\"}, [\"B+cBAQAAAAAAAA==\"]]}": "test activity",
+        "json://{\"py/object\": \"datetime.datetime\", \"__reduce__\": [{\"py/type\": \"datetime.datetime\"}, [\"B+cBAgAAAAAAAA==\"]]}": "test activity"
     }
 }
