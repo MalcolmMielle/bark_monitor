@@ -1,0 +1,16 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: codeberg-tiny-lazy
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Install uv
+        run: pip install uv
+      - name: Set up Python
+        run: uv python install
+      - name: Ruff check
+        run: uvx ruff check .
