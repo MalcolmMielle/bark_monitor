@@ -2,7 +2,7 @@
 
 <!-- [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bark-monitor) -->
 
-![my dog](https://codeberg.org/MalcolmMielle/bark_monitor/raw/commit/990ab48c7e4f3110a8f10b4d4eed4c209d43b81b/images/watson.jpg)
+![my dog](images/watson.jpg)
 
 Showing my neighbor my dog doesn't bark!
 
@@ -33,7 +33,7 @@ Check out our [documentation](https://malcolmmielle.codeberg.page/bark_monitor/@
 
 Contributions are always welcome to help show my neighbor is wrong!
 
-Code submitted should be formatted with [black](https://pypi.org/project/black/) and pass `flake8 .` with no errors.
+Code submitted should be formatted with [ruff](https://docs.astral.sh/ruff/) and the code is managed with [uv](https://docs.astral.sh/uv/).
 All methods should be type hinted and return types should always be present even when it's `None`.
 
 If possible, submit unit tests and a picture of your dog with your PR (I also accept cat pictures as payments).
