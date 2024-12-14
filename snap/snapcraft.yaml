@@ -5,10 +5,52 @@ description: |
 version: git
 grade: stable
 confinement: strict
-base: core22
+base: core24
+
+environment:
+  ALWAYS_USE_PULSEAUDIO: '1'
+
+layout:
+  /usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib:
+    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib
+  /usr/share/alsa:
+    bind: $SNAP/usr/share/alsa
 
 parts:
+  alsa-mixin:
+    plugin: dump
+    source: https://github.com/diddlesnaps/snapcraft-alsa.git
+    source-subdir: snapcraft-assets
+    build-packages:
+      - libasound2-dev
+    stage-packages:
+      - libasound2
+      - libasound2-plugins
+      - yad
+    stage:
+      # restrict to only audio-related files - you need to ensure
+      # that gtk3 is staged for yad to work correctly, to prompt
+      # users to connect the alsa plug or proceed with pulseaudio.
+      #
+      # This helps prevent symbol conflicts in situations where
+      # you're using a non-default library, such as those that the
+      # gnome-3-34 extension for core18 provides.
+      - etc/asound.conf
+      - snap/command-chain/alsa-launch
+      - usr/bin/yad*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libasound*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libdnsfile*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libFLAC*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libjack*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libpulse*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libsamplerate*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libspeex*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/libvorbis*
+      - usr/lib/$CRAFT_ARCH_TRIPLET/pulseaudio
+
   bark-monitor:
+    after: [ alsa-mixin ]
     plugin: python
     build-packages: [portaudio19-dev, python3-pip] # necessary at build time
     stage-packages: [libportaudio2, libasound2] # necessary at runtime, pip is not managing non python deps
@@ -18,17 +60,18 @@ parts:
       pip install . # install the pyproject.toml
       craftctl default # call the default python plugin build part (not going to do much but still necessary for some python3 path)
 
+
 apps:
   bark-monitor:
-    command: bin/python3 $SNAP/lib/python3.10/site-packages/bark_monitor/cli/yamnet_record.py
-    plugs: &plugs
+    command: bin/python3 $SNAP/lib/python3.12/site-packages/bark_monitor/cli/yamnet_record.py
+    plugs:
       - alsa
       - audio-playback
       - audio-record
       - pulseaudio
   bark-monitor-amplitude:
-    command: bin/python3 $SNAP/lib/python3.10/site-packages/bark_monitor/cli/record.py
-    plugs: &plugs
+    command: bin/python3 $SNAP/lib/python3.12/site-packages/bark_monitor/cli/record.py
+    plugs:
       - alsa
       - audio-playback
       - audio-record
