@@ -19,8 +19,6 @@ jobs:
 
       - name: Install uv
         run: pip install uv
-      - name: Set up Python
-        run: uv python install
       - name: Ruff check
         run: uvx ruff check .
 
