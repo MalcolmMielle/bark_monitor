@@ -1,12 +1,12 @@
 # Bark monitor
 
-<!-- [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bark-monitor) -->
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bark-monitor)
 
 ![my dog](images/watson.jpg)
 
 Showing my neighbor my dog doesn't bark!
 
-Get it today: `pip install bark-monitor`.
+Get it today: `pip install bark-monitor` or `snap install bark-monitor`.
 
 ## Introduction
 
