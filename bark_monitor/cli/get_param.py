@@ -1,8 +1,17 @@
 import argparse
 import json
 
+from bark_monitor import logger
+
 
 def get_parameters() -> tuple[bool, str, str, str, str | None, int, int, str | None]:
+    logger.warning(
+        "\n\n\n/*************\nIMPORTANT: If using the snap make sure to plug all the"
+        " available slots with "
+        "`sudo snap connect bark-monitor:XXX`.\n"
+        "See available slots with `snap connections bark-monitor`\n/*************\n\n\n"
+    )
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--config-file",

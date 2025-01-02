@@ -49,7 +49,10 @@ class BaseRecorder(ABC):
 
     @property
     def audio_folder(self) -> Path:
-        return Path(self.output_folder, "audio")
+        audio_path = Path(self.output_folder, "audio")
+        if not audio_path.exists():
+            audio_path.mkdir(parents=True)
+        return audio_path
 
     @property
     def today_audio_folder(self) -> Path:
