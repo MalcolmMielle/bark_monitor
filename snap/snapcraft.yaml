@@ -14,7 +14,7 @@ environment:
   ALWAYS_USE_PULSEAUDIO: '1'
 
 layout:
-  /usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib:
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/alsa-lib:
     bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/alsa-lib
   /usr/share/alsa:
     bind: $SNAP/usr/share/alsa
