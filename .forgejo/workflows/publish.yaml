@@ -1,0 +1,25 @@
+name: Publish Pypi
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  publish:
+    name: Publish
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'trigger_pipeline'
+    runs-on: codeberg-tiny-lazy
+    container:
+      image: ghcr.io/catthehacker/ubuntu:act-latest
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Install uv
+        run: pip install uv
+      - name: Publish
+        run: uv publish --token ${{ secrets.PYPI_TOKEN }}
+
+
