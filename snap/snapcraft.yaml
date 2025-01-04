@@ -11,8 +11,8 @@ environment:
   ALWAYS_USE_PULSEAUDIO: '1'
 
 layout:
-  /usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib:
-    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/alsa-lib:
+    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/alsa-lib
   /usr/share/alsa:
     bind: $SNAP/usr/share/alsa
 
@@ -38,16 +38,16 @@ parts:
       - etc/asound.conf
       - snap/command-chain/alsa-launch
       - usr/bin/yad*
-      - usr/lib/$CRAFT_ARCH_TRIPLET/alsa-lib
-      - usr/lib/$CRAFT_ARCH_TRIPLET/libasound*
-      - usr/lib/$CRAFT_ARCH_TRIPLET/libdnsfile*
-      - usr/lib/$CRAFT_ARCH_TRIPLET/libFLAC*
-      - usr/lib/$CRAFT_ARCH_TRIPLET/libjack*
-      - usr/lib/$CRAFT_ARCH_TRIPLET/libpulse*
-      - usr/lib/$CRAFT_ARCH_TRIPLET/libsamplerate*
-      - usr/lib/$CRAFT_ARCH_TRIPLET/libspeex*
-      - usr/lib/$CRAFT_ARCH_TRIPLET/libvorbis*
-      - usr/lib/$CRAFT_ARCH_TRIPLET/pulseaudio
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/alsa-lib
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libasound*
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libdnsfile*
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libFLAC*
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libjack*
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libpulse*
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libsamplerate*
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libspeex*
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libvorbis*
+      - usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pulseaudio
 
   bark-monitor:
     after: [ alsa-mixin ]
