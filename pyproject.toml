@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bark_monitor"
-version = "0.0.3"
+version = "1.0.0"
 description = "A package to monitor your dog's barks"
 authors = [{ name = "Malcolm Mielle", email = "malcolm.mielle@gmail.com" }]
 readme = "README.md"
