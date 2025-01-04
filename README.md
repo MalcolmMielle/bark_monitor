@@ -8,6 +8,10 @@ Showing my neighbor my dog doesn't bark!
 
 Get it today: `pip install bark-monitor` or `snap install bark-monitor`.
 
+> ATTENTION: if you found this repo on GitHub, this is a mirror of <https://codeberg.org/MalcolmMielle/bark_monitor> and PR won't be accepted on GitHub.
+> This mirror is only here to have snapcraft build available.
+> Please report issues on CodeBerg.
+
 ## Introduction
 
 Do you also have neighbor who accuses your dog of barking all the time, want to kick you out of your flat because of it, even though you know _it's not true_?
