@@ -328,6 +328,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#snap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Snap
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pypi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pypi
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#manual-install" class="md-nav__link">
     <span class="md-ellipsis">
       Manual install
@@ -480,6 +498,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#snap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Snap
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pypi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pypi
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#manual-install" class="md-nav__link">
     <span class="md-ellipsis">
       Manual install
@@ -504,8 +540,22 @@
 
 
 <h1 id="install">Install</h1>
+<h2 id="snap">Snap</h2>
 <p><a href="https://snapcraft.io/bark-monitor"><img alt="Get it from the Snap Store" src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" /></a></p>
-<p>Get from pipy with <code>pip install bark-monitor</code>.</p>
+<p>When using the snape make sure to plug all the connection or the microphone won't be found.
+List all connections with:</p>
+<pre><code class="language-bash">snap connections bark-monitor
+</code></pre>
+<p>connect them with:</p>
+<pre><code class="language-bash">sudo snap connect bark-monitor:XXX
+</code></pre>
+<p>This should connect them all:</p>
+<pre><code class="language-bash">sudo snap connect bark-monitor:alsa
+sudo snap connect bark-monitor:pulseaudio
+sudo snap connect bark-monitor:audio-record
+</code></pre>
+<h2 id="pypi">Pypi</h2>
+<p>Get from pypi with <code>pip install bark-monitor</code>.</p>
 <h2 id="manual-install">Manual install</h2>
 <p>The bark monitor relies on pyaudio and portaudio.
 Start by installing gcc/g++ and portaudio.
