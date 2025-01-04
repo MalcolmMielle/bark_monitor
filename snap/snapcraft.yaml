@@ -53,7 +53,7 @@ parts:
     after: [ alsa-mixin ]
     plugin: python
     build-packages: [portaudio19-dev, python3-pip] # necessary at build time
-    stage-packages: [libportaudio2, libasound2] # necessary at runtime, pip is not managing non python deps
+    stage-packages: [libportaudio2] # necessary at runtime, pip is not managing non python deps
     source: .
     override-build: |
       python3 -m venv "$CRAFT_PART_INSTALL" # Create a venv in the INSTALL part for staging
