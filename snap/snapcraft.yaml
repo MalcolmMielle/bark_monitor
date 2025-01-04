@@ -6,9 +6,6 @@ version: git
 grade: stable
 confinement: strict
 base: core24
-platforms:
-  amd64:
-  arm64:
 
 environment:
   ALWAYS_USE_PULSEAUDIO: '1'
