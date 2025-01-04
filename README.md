@@ -2,6 +2,8 @@
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bark-monitor)
 
+[![Get it on Codeberg](/images/codeberg.png)](https://codeberg.org/MalcolmMielle/bark_monitor)
+
 ![my dog](images/watson.jpg)
 
 Showing my neighbor my dog doesn't bark!
