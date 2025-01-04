@@ -55,7 +55,7 @@ parts:
   bark-monitor:
     after: [ alsa-mixin ]
     plugin: python
-    build-packages: [curl, portaudio19-dev, python3-pip] # necessary at build time
+    build-packages: [curl, portaudio19-dev] # necessary at build time
     build-snaps:
       - astral-uv
     build-environment:
