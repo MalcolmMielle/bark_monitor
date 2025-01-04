@@ -1,5 +1,11 @@
 # Install
 
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bark-monitor)
+
+Get from pipy with `pip install bark-monitor`.
+
+## Manual install
+
 The bark monitor relies on pyaudio and portaudio.
 Start by installing gcc/g++ and portaudio.
 On Ubuntu:
@@ -9,14 +15,9 @@ sudo apt install build-essential
 sudo apt-get install portaudio19-dev
 ```
 
-Install with tensorflow for Deep Learning based detection using [Yamnet](https://www.tensorflow.org/hub/tutorials/yamnet):
+Install using [UV](https://docs.astral.sh/uv/) on python 3.12.
+Run in the root folder:
 
-`pip install .[ml]`
-
-Install without tensorflow to use amplitude based detection:
-
-`pip install .`
-
-Tested with python 3.9, should work with higher versions too.
-
-To run the unit tests and be able to contribute, install the package in editable mode using the `-e` option for pip.
+```bash
+uv sync
+```
