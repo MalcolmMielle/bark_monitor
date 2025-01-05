@@ -6,6 +6,9 @@ version: git
 grade: stable
 confinement: strict
 base: core24
+platforms:
+  amd64:
+  arm64:
 
 environment:
   ALWAYS_USE_PULSEAUDIO: '1'
@@ -52,18 +55,25 @@ parts:
   bark-monitor:
     after: [ alsa-mixin ]
     plugin: python
-    build-packages: [portaudio19-dev, python3-pip] # necessary at build time
-    stage-packages: [libportaudio2] # necessary at runtime, pip is not managing non python deps
+    build-packages: [curl, portaudio19-dev] # necessary at build time
+    build-snaps:
+      - astral-uv
+    build-environment:
+      - UV_FROZEN: "true"
+      - UV_PROJECT_ENVIRONMENT: $CRAFT_PART_INSTALL
     source: .
     override-build: |
-      python3 -m venv "$CRAFT_PART_INSTALL" # Create a venv in the INSTALL part for staging
-      pip install . # install the pyproject.toml
+      uv venv --relocatable --allow-existing $CRAFT_PART_INSTALL # add the installed file at the correct plave
+      uv sync --no-dev --no-editable
       craftctl default # call the default python plugin build part (not going to do much but still necessary for some python3 path)
+    stage-packages:
+      - libportaudio2  # necessary at runtime, pip is not managing non python deps
+
 
 
 apps:
   bark-monitor:
-    command: bin/python3 $SNAP/lib/python3/site-packages/bark_monitor/cli/yamnet_record.py
+    command: bin/python3 $SNAP/lib/python3.12/site-packages/bark_monitor/cli/yamnet_record.py
     plugs:
       - alsa
       - audio-playback
