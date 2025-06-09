@@ -7,13 +7,13 @@ from telegram import Chat
 class Chats:
     __create_key = object()
 
-    def __init__(self, create_key, config_folder: str) -> None:
+    def __init__(self, create_key, config_folder: Path) -> None:
         self._chats: set[int] = set()
-        self._config_folder = Path(config_folder).absolute()
+        self._config_folder = config_folder.absolute()
 
-        assert (
-            create_key == Chats.__create_key
-        ), "Recording objects must be created using Recording.read"
+        assert create_key == Chats.__create_key, (
+            "Recording objects must be created using Recording.read"
+        )
 
     @property
     def chats(self) -> set[int]:
@@ -42,7 +42,7 @@ class Chats:
             outfile.write(encoded)
 
     @classmethod
-    def read(cls, config_folder: str) -> "Chats":
+    def read(cls, config_folder: Path) -> "Chats":
         state = Chats(cls.__create_key, config_folder)
         try:
             with open(state._path, "r") as file:

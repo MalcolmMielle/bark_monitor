@@ -1,9 +1,7 @@
 from datetime import timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
-import oauth2client.client
 import requests
 from telegram import Update
 from telegram.ext import (
@@ -16,7 +14,7 @@ from telegram.ext import (
 )
 
 from bark_monitor.chats import Chats
-from bark_monitor.google_sync import GoogleSync
+from bark_monitor.google_sync import BaseSync
 from bark_monitor.recorders.recording import Recording
 
 
@@ -54,9 +52,9 @@ class VeryBarkBot:
     def __init__(
         self,
         api_key: str,
-        config_folder: str,
+        config_folder: Path,
+        sync: BaseSync,
         accept_new_users: bool = False,
-        google_creds: Optional[str] = None,
     ) -> None:
         self._api_key = api_key
 
@@ -70,7 +68,6 @@ class VeryBarkBot:
         )
 
         self._config_folder = config_folder
-        self._google_cred = google_creds
 
         register_handler = CommandHandler("register", self.register)
         self._application.add_handler(register_handler)
@@ -109,7 +106,7 @@ class VeryBarkBot:
                         self.create_credential_from_code,
                     ),
                 ],
-                1: [MessageHandler(filters.TEXT, self.already_loged_in_google_drive)],
+                1: [MessageHandler(filters.TEXT, self.already_logged_in_google_drive)],
             },
             fallbacks=[
                 MessageHandler(
@@ -119,12 +116,8 @@ class VeryBarkBot:
         )
 
         self._application.add_handler(conv_handler)
-
         self._accept_new_users = accept_new_users
-
-        self._scopes = ["https://www.googleapis.com/auth/drive.file"]
-        self._code_google_drive: Optional[str] = None
-        self.flow = None
+        self._sync = sync
 
     def start(self, recorder: "BaseRecorder") -> None:
         self._recorder = recorder
@@ -260,15 +253,12 @@ class VeryBarkBot:
             if self._recorder.is_paused:
                 status = "The program is paused. "
 
-        connected_to_google = "Not connected to google"
-        got_cred, _ = GoogleSync.get_cred()
-        if got_cred:
-            connected_to_google = "Connected to google"
+        sync_status = self._sync.status()
 
-        recording = Recording.read(self._recorder.output_folder)
-        status += (
-            "Time barked: " + str(recording.time_barked) + " -- " + connected_to_google
+        recording = Recording.read(
+            output_folder=self._recorder.output_folder, sync_service=self._sync
         )
+        status += "Time barked: " + str(recording.time_barked) + " -- " + sync_status
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text=status,
@@ -281,7 +271,9 @@ class VeryBarkBot:
         if not await self._is_registered(update.effective_chat.id, context):
             return
 
-        recording = Recording.read(self._recorder.output_folder)
+        recording = Recording.read(
+            output_folder=self._recorder.output_folder, sync_service=self._sync
+        )
         activities = recording.daily_activities_formated()
 
         if activities == "":
@@ -404,30 +396,11 @@ class VeryBarkBot:
         """Start the conversation to save file on Google Drive"""
 
         assert update.message is not None
-        got_cred, _ = GoogleSync.get_cred()
-        if got_cred:
+
+        already_logged_in, authorize_url = self._sync.login()
+        if already_logged_in:
             return 1
 
-        if self._google_cred is None:
-            await update.message.reply_text(
-                "No credential file."
-                "See https://malcolmmielle.codeberg.page/bark_monitor/@pages/google_sync/",  # noqa: E501
-            )
-            return ConversationHandler.END
-
-        if not Path(self._google_cred).exists():
-            await update.message.reply_text(
-                str(Path(self._google_cred).absolute())
-                + " does not exist on the system. "
-                "See https://malcolmmielle.codeberg.page/bark_monitor/@pages/google_sync/",  # noqa: E501
-            )
-            return ConversationHandler.END
-
-        self.flow = oauth2client.client.flow_from_clientsecrets(
-            self._google_cred, self._scopes
-        )
-        self.flow.redirect_uri = oauth2client.client.OOB_CALLBACK_URN
-        authorize_url = self.flow.step1_get_authorize_url()
         assert update.message is not None
         await update.message.reply_text(
             "Go to the following link in your browser: "
@@ -436,12 +409,12 @@ class VeryBarkBot:
         )
         return 0
 
-    async def already_loged_in_google_drive(
+    async def already_logged_in_google_drive(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> int:
         assert update.message is not None
         await update.message.reply_text(
-            "Already loged in",
+            "Already logged in",
         )
         return ConversationHandler.END
 
@@ -458,10 +431,7 @@ class VeryBarkBot:
             "Neat! the code is: " + text,
         )
 
-        assert self.flow is not None
-        creds = self.flow.step2_exchange(text)
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
+        self._sync.login_step_2(text=text)
 
         assert update.effective_chat is not None
         await self._application.bot.send_message(

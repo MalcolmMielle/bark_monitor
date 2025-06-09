@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 import jsonpickle
 
-from bark_monitor.google_sync import GoogleSync
+from bark_monitor.google_sync import BaseSync
 
 
 class Recording:
@@ -16,17 +15,17 @@ class Recording:
 
     __create_key = object()
 
-    def __init__(self, create_key, output_folder: str) -> None:
-        self._start: Optional[datetime] = None
-        self._start_end: list[tuple[datetime, Optional[datetime]]] = []
+    def __init__(self, create_key, output_folder: Path) -> None:
+        self._start: datetime | None = None
+        self._start_end: list[tuple[datetime, datetime | None]] = []
         self._time_barked: dict[str, timedelta] = {}
         self._time_barked["today"] = timedelta()
         self._output_folder = Path(output_folder).absolute()
         self._activity_tracker: dict[datetime, str] = {}
 
-        assert (
-            create_key == Recording.__create_key
-        ), "Recording objects must be created using Recording.read"
+        assert create_key == Recording.__create_key, (
+            "Recording objects must be created using Recording.read"
+        )
 
     @property
     def output_folder(self) -> Path:
@@ -57,7 +56,7 @@ class Recording:
         self.save()
 
     @property
-    def start_end(self) -> list[tuple[datetime, Optional[datetime]]]:
+    def start_end(self) -> list[tuple[datetime, datetime | None]]:
         return self._start_end
 
     @property
@@ -71,7 +70,7 @@ class Recording:
             return timedelta(0)
         return self._time_barked[now]
 
-    def add_time_barked(self, value: timedelta, day: Optional[str] = None) -> None:
+    def add_time_barked(self, value: timedelta, day: str | None = None) -> None:
         if day is None:
             day = datetime.now().strftime("%d-%m-%Y")
         if day not in self._time_barked:
@@ -81,7 +80,7 @@ class Recording:
         self.save()
 
     @property
-    def start(self) -> Optional[datetime]:
+    def start(self) -> datetime | None:
         return self._start
 
     @start.setter
@@ -107,8 +106,8 @@ class Recording:
         with self._path.open(mode="w") as outfile:
             outfile.write(encoded)
 
-    def save_to_google(self):
-        GoogleSync.update_file(self._path)
+    def upload(self, sync_service: BaseSync) -> None:
+        sync_service.update_file(self._path)
 
     def merge(self, recording: "Recording") -> None:
         for el in recording.start_end:
@@ -118,7 +117,7 @@ class Recording:
         self._time_barked = recording.all_time_barked | self._time_barked
 
     @classmethod
-    def read(cls, output_folder: str) -> "Recording":
+    def read(cls, output_folder: Path, sync_service: BaseSync) -> "Recording":
         """Factory method to load the state.
 
         The state is loaded and written from/to `output_folder`.
@@ -131,7 +130,7 @@ class Recording:
                 lines = file.read()
                 state: "Recording" = jsonpickle.decode(lines, keys=True)  # type: ignore
 
-        past_state_bytes = GoogleSync.load_state()
+        past_state_bytes = sync_service.load_state()
         if past_state_bytes is not None:
             old_state: "Recording" = jsonpickle.decode(past_state_bytes, keys=True)  # type: ignore
             state.merge(old_state)

@@ -4,11 +4,10 @@ import wave
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import pyaudio
 
-from bark_monitor.google_sync import GoogleSync
+from bark_monitor.google_sync import BaseSync
 from bark_monitor.recorders.recording import Recording
 from bark_monitor.very_bark_bot import VeryBarkBot
 
@@ -18,7 +17,8 @@ class BaseRecorder(ABC):
 
     def __init__(
         self,
-        output_folder: str,
+        sync: BaseSync,
+        output_folder: Path,
         framerate: int = 44100,
         chunk: int = 4096,
     ) -> None:
@@ -30,18 +30,19 @@ class BaseRecorder(ABC):
         self._channels = 1
         self._fs = framerate
 
-        self._frames = []  # Initialize array to store frames
+        self._frames: list[bytes] = []  # Initialize array to store frames
 
-        self._t: Optional[threading.Thread] = None
+        self._t: threading.Thread | None = None
 
-        self._pyaudio_interface: Optional[pyaudio.PyAudio] = None
-        self._stream: Optional[pyaudio.Stream] = None
+        self._pyaudio_interface: pyaudio.PyAudio | None = None
+        self._stream: pyaudio.Stream | None = None
 
         self._bark_logger = logging.getLogger("bark_monitor")
 
         self.output_folder = output_folder
 
         self._bark_logger.info("Starting bot")
+        self._sync = sync
 
     def start_bot(self, bot: VeryBarkBot) -> None:
         self._chat_bot = bot
@@ -73,7 +74,7 @@ class BaseRecorder(ABC):
         return filename.absolute()
 
     def _init(self):
-        recording = Recording.read(self.output_folder)
+        recording = Recording.read(self.output_folder, sync_service=self._sync)
         recording.start = datetime.now()
         self.running = True
 
@@ -83,12 +84,12 @@ class BaseRecorder(ABC):
 
     def stop(self) -> None:
         self.running = False
-        recording = Recording.read(self.output_folder)
+        recording = Recording.read(self.output_folder, sync_service=self._sync)
         recording.end(datetime.now())
 
         # Sync with google
-        recording.save_to_google()
-        GoogleSync.save_audio(str(self.audio_folder))
+        recording.upload(self._sync)
+        self._sync.save_audio(str(self.audio_folder))
 
         self._stop()
 

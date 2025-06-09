@@ -2,8 +2,8 @@ import io
 import logging
 import shutil
 from pathlib import Path
-from typing import Optional
 
+import oauth2client.client
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -11,13 +11,32 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
+from bark_monitor.base_sync import BaseSync
 
-class GoogleSync:
+
+class GoogleSync(BaseSync):
     scopes = ["https://www.googleapis.com/auth/drive.file"]
     _file_name = "recordings.json"
 
+    def __init__(self, credential_file) -> None:
+        self.credential_file = credential_file
+
+        if self.credential_file is None:
+            raise FileExistsError(
+                "No credential file."
+                "See https://malcolmmielle.codeberg.page/bark_monitor/@pages/google_sync/"
+            )
+
+        if not Path(self.credential_file).exists():
+            raise FileExistsError(
+                str(self.credential_file.absolute()) + " does not exist on the system. "
+                "See https://malcolmmielle.codeberg.page/bark_monitor/@pages/google_sync/",  # noqa: E501
+            )
+
+        self._flow = None
+
     @staticmethod
-    def get_cred() -> tuple[bool, Optional[Credentials]]:
+    def get_cred() -> tuple[bool, Credentials | None]:
         """Check if connected to google drive already"""
         creds = None
         if Path("token.json").exists():
@@ -40,7 +59,7 @@ class GoogleSync:
         return False, None
 
     @staticmethod
-    def _get_file_id(service, file_name: str) -> Optional[str]:
+    def _get_file_id(service, file_name: str) -> str | None:
         results = (
             service.files()
             .list(
@@ -67,6 +86,7 @@ class GoogleSync:
 
     @staticmethod
     def update_file(file_path: Path) -> None:
+        """Uploads a file to google drive"""
         bark_logger = logging.getLogger("bark_monitor")
         try:
             got_creds, creds = GoogleSync.get_cred()
@@ -103,7 +123,7 @@ class GoogleSync:
         return file.getvalue()
 
     @staticmethod
-    def load_state() -> Optional[bytes]:
+    def load_state() -> bytes | None:
         """Load the recording state stored in the "recording.json" file"""
         got_creds, creds = GoogleSync.get_cred()
         bark_logger = logging.getLogger("bark_monitor")
@@ -121,3 +141,29 @@ class GoogleSync:
         """Save `audio_folder` as a zip file in google drive"""
         shutil.make_archive("bark_monitor_audio", "zip", audio_folder)
         GoogleSync.update_file(Path("bark_monitor_audio.zip"))
+
+    def status(self) -> str:
+        connected_to_google = "Not connected to google"
+        got_cred, _ = self.get_cred()
+        if got_cred:
+            connected_to_google = "Connected to google"
+        return connected_to_google
+
+    def login(self) -> tuple[bool, str]:
+        got_cred, _ = GoogleSync.get_cred()
+        if got_cred:
+            return True, ""
+
+        self._flow = oauth2client.client.flow_from_clientsecrets(
+            self.credential_file, self.scopes
+        )
+        self._flow.redirect_uri = oauth2client.client.OOB_CALLBACK_URN
+        authorize_url = self._flow.step1_get_authorize_url()
+        return False, authorize_url
+
+    def login_step_2(self, text: str) -> None:
+        if self._flow is None:
+            raise ValueError("Flow is None")
+        creds = self._flow.step2_exchange(text)
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())

@@ -1,11 +1,11 @@
 import zipfile
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import tensorflow as tf
 from scipy.io import wavfile
 
+from bark_monitor.base_sync import BaseSync
 from bark_monitor.recorders.wave_recorder import WaveRecorder
 
 
@@ -14,8 +14,9 @@ class YamnetLiteRecorder(WaveRecorder):
 
     def __init__(
         self,
-        output_folder: str,
-        http_url: Optional[str] = None,
+        sync: BaseSync,
+        output_folder: Path,
+        http_url: str | None = None,
         framerate: int = 16000,
     ) -> None:
         model_path = Path("models", "lite-model_yamnet_classification_tflite_1.tflite")
@@ -31,6 +32,7 @@ class YamnetLiteRecorder(WaveRecorder):
         self._scores_output_index = output_details[0]["index"]
 
         super().__init__(
+            sync=sync,
             output_folder=output_folder,
             sampling_time_bark_seconds=None,
             http_url=http_url,

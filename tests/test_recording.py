@@ -5,12 +5,14 @@ from unittest import mock
 
 import jsonpickle
 
+from bark_monitor.google_sync import GoogleSync
 from bark_monitor.recorders.recording import Recording
 
 
 class TestRecording(unittest.TestCase):
     def test_goal(self) -> None:
-        recording = Recording.read("tests/data")
+        sync_service = GoogleSync(credential_file=Path(""))
+        recording = Recording.read(Path("tests/data"), sync_service=sync_service)
         self.assertEqual(recording._time_barked["today"], timedelta(2))
         self.assertEqual(len(recording.start_end), 1)
         self.assertEqual(
@@ -38,19 +40,20 @@ class TestRecording(unittest.TestCase):
         )
 
     def test_activity(self) -> None:
-        recording = Recording.read("tests/data")
+        sync_service = GoogleSync(credential_file=Path(""))
+        recording = Recording.read(Path("tests/data"), sync_service=sync_service)
         recording.output_folder = Path("tests/data")
         recording.clear_activity()
         self.assertEqual(len(recording.activity_tracker), 0)
 
-        recording = Recording.read("tests/data")
+        recording = Recording.read(Path("tests/data"), sync_service=sync_service)
         self.assertEqual(len(recording.activity_tracker), 0)
         time = datetime(year=2023, month=1, day=1)
         recording.add_activity(time, "test activity")
         key = list(recording.activity_tracker.keys())[0]
         self.assertEqual(key, time)
 
-        recording = Recording.read("tests/data")
+        recording = Recording.read(Path("tests/data"), sync_service=sync_service)
         key = list(recording.activity_tracker.keys())[0]
         self.assertEqual(key, time)
 
@@ -58,7 +61,7 @@ class TestRecording(unittest.TestCase):
         recording.add_activity(time, "test activity")
         self.assertEqual(len(recording.activity_tracker), 2)
 
-        recording = Recording.read("tests/data")
+        recording = Recording.read(Path("tests/data"), sync_service=sync_service)
         self.assertEqual(len(recording.activity_tracker), 2)
 
     @mock.patch.object(Recording, "save", return_value="None")

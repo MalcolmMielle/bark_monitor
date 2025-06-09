@@ -1,10 +1,10 @@
 from pathlib import Path
-from typing import Optional
 
 import tensorflow as tf
 import tensorflow_hub as hub
 from scipy.io import wavfile
 
+from bark_monitor.base_sync import BaseSync
 from bark_monitor.recorders.wave_recorder import WaveRecorder
 
 
@@ -18,9 +18,10 @@ class YamnetRecorder(WaveRecorder):
 
     def __init__(
         self,
-        output_folder: str,
+        sync: BaseSync,
+        output_folder: Path,
         sampling_time_bark_seconds: int = 1,
-        http_url: Optional[str] = None,
+        http_url: str | None = None,
         framerate: int = 16000,
     ) -> None:
         """
@@ -32,14 +33,17 @@ class YamnetRecorder(WaveRecorder):
         """
         self._model = hub.load("https://tfhub.dev/google/yamnet/1")
 
+        assert self._model is not None
+
         class_map_path = self._model.class_map_path().numpy()
         self._class_names = WaveRecorder.class_names_from_csv(class_map_path)
 
         super().__init__(
-            output_folder,
-            sampling_time_bark_seconds,
-            http_url,
-            framerate,
+            sync=sync,
+            output_folder=output_folder,
+            sampling_time_bark_seconds=sampling_time_bark_seconds,
+            http_url=http_url,
+            framerate=framerate,
         )
 
     def _detect(self, wave_file: Path) -> str:

@@ -4,13 +4,13 @@ import tempfile
 from abc import abstractmethod
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import requests
 import scipy
 import tensorflow as tf
 
+from bark_monitor.base_sync import BaseSync
 from bark_monitor.recorders.base_recorder import BaseRecorder
 from bark_monitor.recorders.recording import Recording
 
@@ -20,9 +20,10 @@ class WaveRecorder(BaseRecorder):
 
     def __init__(
         self,
-        output_folder: str,
-        sampling_time_bark_seconds: Optional[int] = 1,
-        http_url: Optional[str] = None,
+        sync: BaseSync,
+        output_folder: Path,
+        sampling_time_bark_seconds: int | None = 1,
+        http_url: str | None = None,
         framerate: int = 16000,
         chunk: int = 4096,
     ) -> None:
@@ -56,6 +57,7 @@ class WaveRecorder(BaseRecorder):
         ]
 
         super().__init__(
+            sync=sync,
             output_folder=output_folder,
             framerate=framerate,
             chunk=chunk,
@@ -137,7 +139,9 @@ class WaveRecorder(BaseRecorder):
             self._frames += self._nn_frames
 
             # increase time barked in state
-            recording = Recording.read(self.output_folder)
+            recording = Recording.read(
+                output_folder=self.output_folder, sync_service=self._sync
+            )
             duration = timedelta(
                 seconds=(len(self._nn_frames) * self._chunk) / self._fs
             )
@@ -147,7 +151,7 @@ class WaveRecorder(BaseRecorder):
             recording.add_activity(datetime.now(), label)
 
         elif len(self._frames) > 0:
-            recording = Recording.read(self.output_folder)
+            recording = Recording.read(self.output_folder, sync_service=self._sync)
             label = ""
             time = None
             for key in recording.activity_tracker:

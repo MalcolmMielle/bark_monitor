@@ -23,6 +23,7 @@ dependencies = [
   "numpy>=2.0.2",
   "pyaudio>=0.2.14",
   "scipy>=1.14.1",
+  "tyro>=0.9.24",
 ]
 keywords = [
   "bark",
@@ -94,3 +95,8 @@ docstring-code-format = true
 # This only has an effect when the `docstring-code-format` setting is
 # enabled.
 docstring-code-line-length = "dynamic"
+
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+deprecateTypingAliases = true

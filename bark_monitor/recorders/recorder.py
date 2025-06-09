@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from pathlib import Path
 
 import numpy as np
 
+from bark_monitor.google_sync import BaseSync
 from bark_monitor.recorders.base_recorder import BaseRecorder
 from bark_monitor.recorders.recording import Recording
 
@@ -12,7 +13,8 @@ class Recorder(BaseRecorder):
 
     def __init__(
         self,
-        output_folder: str,
+        sync: BaseSync,
+        output_folder: Path,
     ) -> None:
         self._bark_level: int = 0
 
@@ -20,10 +22,10 @@ class Recorder(BaseRecorder):
         self.is_paused = False
 
         self._last_bark = datetime.now()
-        super().__init__(output_folder)
+        super().__init__(sync=sync, output_folder=output_folder)
 
     @property
-    def bark_level(self) -> Optional[int]:
+    def bark_level(self) -> int | None:
         return self._bark_level
 
     def _init(self):
@@ -84,7 +86,7 @@ class Recorder(BaseRecorder):
                 assert self._barking_at is not None
                 self._is_barking = False
 
-                recording = Recording.read(self.output_folder)
+                recording = Recording.read(self.output_folder, sync_service=self._sync)
                 duration = timedelta(
                     seconds=(len(self._frames) * self._chunk) / self._fs
                 )
