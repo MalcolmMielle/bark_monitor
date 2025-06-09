@@ -28,13 +28,13 @@ class Parameters:
     sampling_time_bark_seconds: int = 1
     accept_new_users: bool = False
     google_creds: str | None = None
+    things_board_url: str | None = None
 
     def __post_init__(self) -> None:
         if self.config_file is not None:
             with open(self.config_file, "rb") as f:
                 json_data = json.load(f)
 
-            self.things_board_url = None
             if (
                 "thingsboard_ip" in json_data
                 and "thingsboard_port" in json_data
