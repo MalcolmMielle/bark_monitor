@@ -4,23 +4,22 @@ import wave
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
+from typing import Callable
 
 import pyaudio
 
 from bark_monitor.google_sync import BaseSync
 from bark_monitor.recorders.recording import Recording
-from bark_monitor.very_bark_bot import VeryBarkBot
 
 
 class BaseRecorder(ABC):
-    _chat_bot: VeryBarkBot
-
     def __init__(
         self,
         sync: BaseSync,
         output_folder: Path,
         framerate: int = 44100,
         chunk: int = 4096,
+        send_text_callback: Callable[[str], None] | None = None,
     ) -> None:
         self.running = False
         self.is_paused = False
@@ -44,9 +43,11 @@ class BaseRecorder(ABC):
         self._bark_logger.info("Starting bot")
         self._sync = sync
 
-    def start_bot(self, bot: VeryBarkBot) -> None:
-        self._chat_bot = bot
-        self._chat_bot.start(self)
+        self.send_text_callback = send_text_callback
+
+    @property
+    def sync(self) -> BaseSync:
+        return self._sync
 
     @property
     def audio_folder(self) -> Path:
@@ -107,13 +108,14 @@ class BaseRecorder(ABC):
         if prefix is not None:
             filepath = Path(self.today_audio_folder, prefix + " " + self._filename.name)
         file = self._save_recording_to(frames, filepath)
-        self._chat_bot.send_text(
-            "Save file: "
-            + str(filepath)
-            + ".\nDownload it with \n\n ```\n/audio "
-            + filepath.name
-            + "\n```"
-        )
+        if self.send_text_callback is not None:
+            self.send_text_callback(
+                "Save file: "
+                + str(filepath)
+                + ".\nDownload it with \n\n ```\n/audio "
+                + filepath.name
+                + "\n```"
+            )
         return file
 
     def _save_recording_to(self, frames: list[bytes], filepath: Path) -> Path:

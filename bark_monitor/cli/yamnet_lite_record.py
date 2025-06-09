@@ -4,7 +4,7 @@ from bark_monitor import logger
 from bark_monitor.cli.get_param import Parameters
 from bark_monitor.google_sync import GoogleSync
 from bark_monitor.recorders.yamnet_lite_recorder import YamnetLiteRecorder
-from bark_monitor.very_bark_bot import VeryBarkBot
+from bark_monitor.very_bark_bot import VeryBarkTelegramBot
 
 
 def main():
@@ -19,19 +19,20 @@ def main():
 
     sync_service = GoogleSync(credential_file=parameters.google_creds)
 
-    recorder = YamnetLiteRecorder(
-        sync=sync_service,
-        output_folder=parameters.output_folder,
-        http_url=parameters.things_board_url,
-        framerate=parameters.microphone_framerate,
-    )
-    bot = VeryBarkBot(
+    bot = VeryBarkTelegramBot(
         sync=sync_service,
         api_key=parameters.api_key,
         config_folder=parameters.config_folder,
         accept_new_users=parameters.accept_new_users,
     )
-    recorder.start_bot(bot)
+    recorder = YamnetLiteRecorder(
+        sync=sync_service,
+        output_folder=parameters.output_folder,
+        http_url=parameters.things_board_url,
+        framerate=parameters.microphone_framerate,
+        send_text_callback=bot.send_text,
+    )
+    bot.start(recorder)
 
 
 if __name__ == "__main__":

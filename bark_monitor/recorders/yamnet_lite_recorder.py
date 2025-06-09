@@ -1,5 +1,6 @@
 import zipfile
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
 import tensorflow as tf
@@ -18,6 +19,7 @@ class YamnetLiteRecorder(WaveRecorder):
         output_folder: Path,
         http_url: str | None = None,
         framerate: int = 16000,
+        send_text_callback: Callable[[str], None] | None = None,
     ) -> None:
         model_path = Path("models", "lite-model_yamnet_classification_tflite_1.tflite")
         self._interpreter = tf.lite.Interpreter(str(model_path))
@@ -38,6 +40,7 @@ class YamnetLiteRecorder(WaveRecorder):
             http_url=http_url,
             framerate=framerate,
             chunk=15600,
+            send_text_callback=send_text_callback,
         )
 
     def _detect(self, wave_file: Path) -> str:

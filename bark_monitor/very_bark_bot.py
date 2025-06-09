@@ -46,7 +46,7 @@ class Commands(Enum):
         return msg
 
 
-class VeryBarkBot:
+class VeryBarkTelegramBot:
     _recorder: "BaseRecorder"  # noqa: F821
 
     def __init__(
@@ -83,8 +83,6 @@ class VeryBarkBot:
 
         status_handler = CommandHandler("status", self.status)
         self._application.add_handler(status_handler)
-        bark_level_handler = CommandHandler("bark_level", self.bark_level)
-        self._application.add_handler(bark_level_handler)
 
         activity_handler = CommandHandler("activity", self.activity)
         self._application.add_handler(activity_handler)
@@ -289,24 +287,6 @@ class VeryBarkBot:
             chat_id=update.effective_chat.id,
             text=activities,
         )
-
-    async def bark_level(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
-        assert update.effective_chat is not None
-        if not await self._is_registered(update.effective_chat.id, context):
-            return
-
-        try:
-            await self._application.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Level " + str(self._recorder.bark_level),
-            )
-        except Exception as e:
-            await self._application.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="No bark level: " + str(e),
-            )
 
     def send_bark(self, intensity: int) -> None:
         self.send_text("bark: " + str(intensity))

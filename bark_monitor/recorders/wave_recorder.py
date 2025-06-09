@@ -4,6 +4,7 @@ import tempfile
 from abc import abstractmethod
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
 import requests
@@ -26,6 +27,7 @@ class WaveRecorder(BaseRecorder):
         http_url: str | None = None,
         framerate: int = 16000,
         chunk: int = 4096,
+        send_text_callback: Callable[[str], None] | None = None,
     ) -> None:
         """
         `api_key` is the key of telegram bot and `config_folder` is the folder with the
@@ -61,6 +63,7 @@ class WaveRecorder(BaseRecorder):
             output_folder=output_folder,
             framerate=framerate,
             chunk=chunk,
+            send_text_callback=send_text_callback,
         )
 
     @staticmethod
@@ -133,7 +136,8 @@ class WaveRecorder(BaseRecorder):
         if label in self._animal_labels:
             payload[label] = 1
             # notify
-            self._chat_bot.send_text("detected: " + label)
+            if self.send_text_callback is not None:
+                self.send_text_callback("detected: " + label)
 
             # save all frame to make one large recording
             self._frames += self._nn_frames

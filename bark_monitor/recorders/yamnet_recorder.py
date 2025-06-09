@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Callable
 
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -23,6 +24,7 @@ class YamnetRecorder(WaveRecorder):
         sampling_time_bark_seconds: int = 1,
         http_url: str | None = None,
         framerate: int = 16000,
+        send_text_callback: Callable[[str], None] | None = None,
     ) -> None:
         """
         `api_key` is the key of telegram bot and `config_folder` is the folder with the
@@ -44,6 +46,7 @@ class YamnetRecorder(WaveRecorder):
             sampling_time_bark_seconds=sampling_time_bark_seconds,
             http_url=http_url,
             framerate=framerate,
+            send_text_callback=send_text_callback,
         )
 
     def _detect(self, wave_file: Path) -> str:
