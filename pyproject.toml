@@ -1,12 +1,11 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "bark_monitor"
-version = "1.0.1"
 description = "A package to monitor your dog's barks"
-authors = [{ name = "Malcolm Mielle", email = "malcolm.mielle@gmail.com" }]
+authors = [{ name = "Malcolm Mielle", email = "malcolm.mielle@ik.me" }]
 readme = "README.md"
 dependencies = [
   "google-api-python-client>=2.155.0",
@@ -41,6 +40,7 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
 ]
+dynamic = ["version"]
 
 
 [project.optional-dependencies]
@@ -54,6 +54,9 @@ bark-monitor-amplitude = "bark_monitor.cli.record:main"
 [project.urls]
 repository = "https://codeberg.org/MalcolmMielle/bark_monitor"
 documentation = "https://malcolmmielle.codeberg.page/bark_monitor/@pages/"
+
+[tool.uv]
+dev-dependencies = ["ruff>=0.8.6"]
 
 # RUFF
 [tool.ruff]
@@ -70,9 +73,6 @@ ignore = ["F722", "F821"]
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 unfixable = []
-
-[tool.ruff.lint.isort]
-known-third-party = ["FlirImageExtractor"]
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
@@ -96,7 +96,15 @@ docstring-code-format = true
 # enabled.
 docstring-code-line-length = "dynamic"
 
-
 [tool.basedpyright]
 typeCheckingMode = "standard"
 deprecateTypingAliases = true
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+version_scheme = "no-guess-dev"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "_version.py"

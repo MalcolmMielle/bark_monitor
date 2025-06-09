@@ -1,15 +1,13 @@
-name: Publish Pypi
+name: Publish to Pypi
 
 on:
-  workflow_dispatch:
-  push:
-    tags:
-      - "*"
+  release:
+    types: [published]
 
 jobs:
-  publish:
-    name: Publish
-    runs-on: codeberg-tiny-lazy
+  test:
+    name: Publish to Pypi
+    runs-on: codeberg-small-lazy
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
@@ -18,9 +16,10 @@ jobs:
           fetch-depth: 1
       - name: Install uv
         run: pip install uv
+      - name: Build
+        run: uv build
       - name: Publish
-        run: |
-          uv build
-          uv publish --token ${{ secrets.PYPI_TOKEN }}
+        run: uv publish --token ${{ secrets.PYPI_TOKEN }}
+
 
 
