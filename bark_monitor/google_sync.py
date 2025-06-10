@@ -1,6 +1,5 @@
 import io
 import logging
-import shutil
 from pathlib import Path
 
 import oauth2client.client
@@ -84,8 +83,7 @@ class GoogleSync(BaseSync):
         )
         return file
 
-    @staticmethod
-    def update_file(file_path: Path) -> None:
+    def update_file(self, file_path: Path) -> None:
         """Uploads a file to google drive"""
         bark_logger = logging.getLogger("bark_monitor")
         try:
@@ -122,8 +120,7 @@ class GoogleSync(BaseSync):
             status, done = downloader.next_chunk()
         return file.getvalue()
 
-    @staticmethod
-    def load_state() -> bytes | None:
+    def load_state(self) -> bytes | None:
         """Load the recording state stored in the "recording.json" file"""
         got_creds, creds = GoogleSync.get_cred()
         bark_logger = logging.getLogger("bark_monitor")
@@ -135,12 +132,6 @@ class GoogleSync(BaseSync):
         if file_id is None:
             return None
         return GoogleSync._load_file(service, file_id)
-
-    @staticmethod
-    def save_audio(audio_folder: str) -> None:
-        """Save `audio_folder` as a zip file in google drive"""
-        shutil.make_archive("bark_monitor_audio", "zip", audio_folder)
-        GoogleSync.update_file(Path("bark_monitor_audio.zip"))
 
     def status(self) -> str:
         connected_to_google = "Not connected to google"

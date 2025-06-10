@@ -1,85 +1,58 @@
-import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar, Self
+from typing import Self
 
 import jsonpickle
 
-from bark_monitor import logger
+
+@dataclass(kw_only=True)
+class NextCloudParameters:
+    server: str
+    user: str
+    passwd: str
+
+
+@dataclass(kw_only=True)
+class ThingsBoardParameters:
+    thingsboard_ip: str
+    thingsboard_port: int
+    thingsboard_device_token: str
+
+    def __post_init__(self) -> None:
+        self.things_board_url = (
+            "http://"
+            + self.thingsboard_ip
+            + ":"
+            + str(self.thingsboard_port)
+            + "/api/v1/"
+            + self.thingsboard_device_token
+            + "/telemetry"
+        )
 
 
 @dataclass(kw_only=True)
 class Parameters:
-    __uninitialized_output_folder: ClassVar[Path] = Path("")
-    output_folder: Path = field(
-        default_factory=lambda: Parameters.__uninitialized_output_folder
-    )
+    output_folder: Path
+    config_folder: Path
 
-    __uninitialized_config_folder: ClassVar[Path] = Path("")
-    config_folder: Path = field(
-        default_factory=lambda: Parameters.__uninitialized_config_folder
-    )
-
-    __uninitialized_api: ClassVar[str] = ""
-    api_key: str = field(default_factory=lambda: Parameters.__uninitialized_api)
-
+    api_key: str | None = None
     config_file: Path | None = None
     microphone_framerate: int = 16000
     sampling_time_bark_seconds: int = 1
     accept_new_users: bool = False
     google_creds: str | None = None
-    things_board_url: str | None = None
 
-    def __post_init__(self) -> None:
-        if self.config_file is not None:
-            with open(self.config_file, "rb") as f:
-                json_data = json.load(f)
+    """Nextcloud parameters"""
+    nextcloud_parameters: NextCloudParameters | None = None
 
-            if (
-                "thingsboard_ip" in json_data
-                and "thingsboard_port" in json_data
-                and "thingsboard_device_token" in json_data
-            ):
-                self.things_board_url = (
-                    "http://"
-                    + json_data["thingsboard_ip"]
-                    + ":"
-                    + str(json_data["thingsboard_port"])
-                    + "/api/v1/"
-                    + json_data["thingsboard_device_token"]
-                    + "/telemetry"
-                )
+    """Thingboard parameters"""
+    thingsboard_parameters: ThingsBoardParameters | None = None
 
-            if "microphone framerate" in json_data:
-                self.microphone_framerate = json_data["microphone framerate"]
-
-            if "sampling time bark seconds" in json_data:
-                self.sampling_time_bark_seconds = json_data[
-                    "sampling time bark seconds"
-                ]
-
-            if "google credentials" in json_data:
-                self.google_creds = json_data["google credentials"]
-
-            if "output_folder" in json_data:
-                self.output_folder = json_data["output_folder"]
-
-            if "config_folder" in json_data:
-                self.config_folder = json_data["config_folder"]
-
-            if "api_key" in json_data:
-                self.api_key = json_data["api_key"]
-
-        self.is_valid()
-
-    def is_valid(self) -> None:
-        if self.api_key is self.__uninitialized_api:
-            raise ValueError("api_key is not set")
-        if self.output_folder is self.__uninitialized_output_folder:
-            raise ValueError("output_folder is not set")
-
-        if self.output_folder == Path(""):
-            logger.warning("output_folder is set to Path() which is the default value")
+    @property
+    def thingsboard_uri(self) -> str | None:
+        if self.thingsboard_parameters is not None:
+            return self.thingsboard_parameters.things_board_url
+        return None
 
     def save(self, path: str) -> None:
         encoded = jsonpickle.encode(self)
@@ -88,10 +61,8 @@ class Parameters:
             outfile.write(encoded)
 
     @classmethod
-    def read(cls, path: str) -> Self:
+    def read(cls, path: Path) -> Self:
         with open(path, "r") as file:
-            # dict = json.load(file)
             lines = file.read()
             parameters: Parameters = jsonpickle.decode(lines)  # type: ignore
-            parameters.is_valid()
         return parameters

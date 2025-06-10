@@ -88,9 +88,9 @@ class BaseRecorder(ABC):
         recording = Recording.read(self.output_folder, sync_service=self._sync)
         recording.end(datetime.now())
 
-        # Sync with google
+        # Sync
         recording.upload(self._sync)
-        self._sync.save_audio(str(self.audio_folder))
+        self._sync.save_audio(self.audio_folder)
 
         self._stop()
 

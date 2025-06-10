@@ -1,21 +1,20 @@
 import abc
+import shutil
 from pathlib import Path
 
 
 class BaseSync(abc.ABC):
-    @staticmethod
     @abc.abstractmethod
-    def update_file(file_path: Path) -> None:
+    def update_file(self, file_path: Path) -> None:
         raise NotImplementedError("update_file not implemented")
 
-    @staticmethod
-    @abc.abstractmethod
-    def save_audio(audio_folder: str) -> None:
-        raise NotImplementedError("save_audio not implemented")
+    def save_audio(self, audio_folder: Path) -> None:
+        shutil.make_archive("bark_monitor_audio", "zip", audio_folder)
+        self.update_file(Path("bark_monitor_audio.zip"))
 
-    @staticmethod
     @abc.abstractmethod
-    def load_state() -> bytes | None:
+    def load_state(self) -> bytes | None:
+        """Load the recording state stored in the "recording.json" file"""
         raise NotImplementedError("load_state not implemented")
 
     @abc.abstractmethod

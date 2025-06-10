@@ -10,6 +10,7 @@ class TestConfig(unittest.TestCase):
             accept_new_users=True,
             api_key="test_api_key",
             output_folder=Path("test/data"),
+            config_folder=Path(""),
         )
         parameters.save("tests/data/config.json")
 
