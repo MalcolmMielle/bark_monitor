@@ -26,10 +26,11 @@ async def lifespan(app: FastAPI):
 
     parameters = tyro.cli(Parameters)
 
+    assert parameters.nextcloud_parameters is not None
     sync_service = NextCloudSync(
-        server="SERVER",
-        user="USERNAME",
-        passwd="PASSWORD",
+        server=parameters.nextcloud_parameters.server,
+        user=parameters.nextcloud_parameters.user,
+        passwd=parameters.nextcloud_parameters.passwd,
     )
 
     recoder["yamnet"] = YamnetRecorder(

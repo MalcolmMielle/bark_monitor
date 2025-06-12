@@ -42,11 +42,11 @@ class Parameters:
     accept_new_users: bool = False
     google_creds: str | None = None
 
-    """Nextcloud parameters"""
     nextcloud_parameters: NextCloudParameters | None = None
+    """Nextcloud parameters"""
 
-    """Thingboard parameters"""
     thingsboard_parameters: ThingsBoardParameters | None = None
+    """Thingboard parameters"""
 
     @property
     def thingsboard_uri(self) -> str | None:
