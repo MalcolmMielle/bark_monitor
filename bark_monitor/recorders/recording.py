@@ -43,6 +43,12 @@ class Recording:
                 activities += a_datetime.strftime("%H %M %S") + ": " + activity + "\n"
         return activities
 
+    def activities_formated(self) -> str:
+        activities = ""
+        for a_datetime, activity in self.activity_tracker.items():
+            activities += a_datetime.isoformat() + "---" + activity + "\n"
+        return activities[:-1]
+
     @property
     def activity_tracker(self) -> dict[datetime, str]:
         return self._activity_tracker
