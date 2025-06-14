@@ -53,4 +53,12 @@ def fasdtapi_webver(lifespan, recorder: dict[str, BaseRecorder]) -> None:
         audio_file = max(audio_files, key=lambda p: p.stat().st_ctime)
         return FileResponse(audio_file)
 
+    @app.get("/time_barked")
+    async def time_barked() -> dict[str, int]:
+        recording = Recording.read(
+            output_folder=recorder["yamnet"].output_folder,
+            sync_service=recorder["yamnet"].sync,
+        )
+        return {"time barked": recording.time_barked.seconds}
+
     uvicorn.run(app, host="127.0.0.1", port=8000)

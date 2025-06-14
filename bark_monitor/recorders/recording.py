@@ -19,7 +19,6 @@ class Recording:
         self._start: datetime | None = None
         self._start_end: list[tuple[datetime, datetime | None]] = []
         self._time_barked: dict[str, timedelta] = {}
-        self._time_barked["today"] = timedelta()
         self._output_folder = Path(output_folder).absolute()
         self._activity_tracker: dict[datetime, str] = {}
 
