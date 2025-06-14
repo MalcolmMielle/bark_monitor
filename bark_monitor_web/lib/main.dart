@@ -1,4 +1,5 @@
 import 'package:bark_monitor_web/activities.dart';
+import 'package:bark_monitor_web/settings.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -51,11 +52,24 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool recording = false;
   String serverUrl = "http://127.0.0.1:8000/";
+  late final List<Widget> _widgetOptions;
 
   @override
   void initState() {
     super.initState();
     fetchStatus(); // Fetch posts when the app starts
+    _widgetOptions = <Widget>[
+      Activities(serverUrl: serverUrl),
+      Settings(serverUrl: serverUrl),
+    ];
+  }
+
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   // Function to fetch posts using Dio
@@ -115,20 +129,45 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
+      // appBar: AppBar(
+      //   // TRY THIS: Try changing the color here to a specific color (to
+      //   // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+      //   // change color while the other colors stay the same.
+      //   backgroundColor: recording
+      //       ? Colors.green
+      //       : Theme.of(context).colorScheme.inversePrimary,
+      //   // Here we take the value from the MyHomePage object that was created by
+      //   // the App.build method, and use it to set our appbar title.
+      //   title: Text(widget.title),
+      // ),
+      body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LinearProgressIndicator(
+            value: recording ? null : 0,
+            color: Colors.green,
+          ),
+          BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: Theme.of(context).colorScheme.primary,
+            onTap: _onItemTapped,
+          ),
+        ],
+      ),
+
+      floatingActionButton: FloatingActionButton.large(
+        onPressed: recording ? stop : start,
         backgroundColor: recording
             ? Colors.green
             : Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Activities(serverUrl: serverUrl),
-      floatingActionButton: FloatingActionButton.large(
-        onPressed: recording ? stop : start,
         child: recording
             ? const Icon(Icons.stop)
             : const Icon(Icons.play_arrow),
