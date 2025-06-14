@@ -48,13 +48,18 @@ class Parameters:
     thingsboard_parameters: ThingsBoardParameters | None = None
     """Thingboard parameters"""
 
+    def __post_init__(self) -> None:
+        self.output_folder.mkdir(parents=True, exist_ok=True)
+        self.config_folder.mkdir(parents=True, exist_ok=True)
+        self.save(self.config_folder / "parameters.json")
+
     @property
     def thingsboard_uri(self) -> str | None:
         if self.thingsboard_parameters is not None:
             return self.thingsboard_parameters.things_board_url
         return None
 
-    def save(self, path: str) -> None:
+    def save(self, path: Path) -> None:
         encoded = jsonpickle.encode(self)
         assert encoded is not None
         with open(path, "w") as outfile:

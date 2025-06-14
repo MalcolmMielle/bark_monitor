@@ -1,4 +1,6 @@
+import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import tyro
 from fastapi import FastAPI
@@ -22,7 +24,16 @@ async def lifespan(app: FastAPI):
         "See available slots with `snap connections bark-monitor`\n/*************\n\n\n"
     )
 
-    parameters = tyro.cli(Parameters)
+    if sys.argv[1] == "--help":
+        print(
+            "Either load a config file by using --config-file followed by the path to"
+            + "the file or create a new parameter set by using: \n"
+        )
+        parameters = tyro.cli(Parameters)
+    if sys.argv[1] == "--config-file":
+        parameters = Parameters.read(Path(sys.argv[4]))
+    else:
+        parameters = tyro.cli(Parameters)
 
     assert parameters.nextcloud_parameters is not None
     sync_service = NextCloudSync(
