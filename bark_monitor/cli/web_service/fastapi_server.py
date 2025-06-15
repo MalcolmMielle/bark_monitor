@@ -2,18 +2,12 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
-from fastapi_rss import (
-    RSSFeed,
-    RSSResponse,
-)
 
 from bark_monitor.recorders.base_recorder import BaseRecorder
 from bark_monitor.recorders.recording import Recording
 
 
-def fasdtapi_webver(recorder: BaseRecorder) -> FastAPI:
-    app = FastAPI()
-
+def fasdtapi_webserver(app: FastAPI, recorder: BaseRecorder) -> None:
     @app.post("/start")
     async def start() -> dict[str, str]:
         recorder.record()
@@ -63,14 +57,3 @@ def fasdtapi_webver(recorder: BaseRecorder) -> FastAPI:
             sync_service=recorder.sync,
         )
         return {"time barked": recording.time_barked.seconds}
-
-    @app.get("/rss")
-    async def root():
-        recording = Recording.read(
-            output_folder=recorder.output_folder,
-            sync_service=recorder.sync,
-        )
-        feed = RSSFeed(**(recording.feed_data))
-        return RSSResponse(feed)
-
-    return app
