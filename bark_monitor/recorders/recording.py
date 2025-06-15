@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import jsonpickle
-from fastapi_rss import GUID, Category, CategoryAttrs, Item
+from fastapi_rss import GUID, Category, CategoryAttrs, GUIDAttrs, Item
 
 from bark_monitor.google_sync import BaseSync
 
@@ -18,9 +18,13 @@ class Activity:
     duration: timedelta
     audio_path: Path
 
+    def __post_init__(self) -> None:
+        self.uid = str(uuid.uuid4())
+
     def to_rss_feed_item(self) -> Item:
+        attr = GUIDAttrs(is_permalink=False)
         return Item(
-            guid=GUID(content=str(uuid.uuid4())),
+            guid=GUID(content=self.uid, attrs=attr),
             title="I barked: " + self.label,
             description="This happened on "
             + self.date.isoformat()
