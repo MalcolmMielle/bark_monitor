@@ -6,8 +6,8 @@ import uvicorn
 from fastapi import FastAPI
 
 from bark_monitor import logger
-from bark_monitor.cli.get_param import WebServerParameters
 from bark_monitor.cli.web_service.fastapi_server import fasdtapi_webserver
+from bark_monitor.cli.web_service.web_server_param import WebServerParameters
 from bark_monitor.next_cloud_sync import NextCloudSync
 from bark_monitor.recorders.yamnet_recorder import YamnetRecorder
 
