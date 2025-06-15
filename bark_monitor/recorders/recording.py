@@ -201,6 +201,7 @@ class Recording:
             "description": "Is watson barking.",
             "language": "en-us",
             "generator": "Bark Monitor Watson",
+            "last_build_date": datetime.now(),
             "category": [
                 Category(content="1765", attrs=CategoryAttrs(domain="Syndic8"))
             ],
