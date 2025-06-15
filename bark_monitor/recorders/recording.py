@@ -31,7 +31,7 @@ class Activity:
             + " for "
             + str(self.duration.seconds)
             + " seconds. Download the recording at the link",
-            author="god@malcolmmielle.phd",
+            author="dog@malcolmmielle.phd",
             link="http://www.bark.malcolmmielle.phd/",
         )
 
