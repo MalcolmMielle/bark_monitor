@@ -34,7 +34,7 @@ def main() -> None:
 
     app = FastAPI()
 
-    @app.get("/rss")
+    @app.get("/")
     async def rss_feed() -> RSSResponse:
         recording = Recording.read(
             output_folder=parameters.output_folder,
