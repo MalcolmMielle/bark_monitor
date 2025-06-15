@@ -1,9 +1,33 @@
+from collections import deque
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import jsonpickle
+from fastapi_rss import Category, CategoryAttrs, Item
 
 from bark_monitor.google_sync import BaseSync
+
+
+@dataclass(kw_only=True)
+class Activity:
+    label: str
+    date: datetime
+    duration: timedelta
+    audio_path: Path
+
+    def to_rss_feed_item(self) -> Item:
+        return Item(
+            title="I barked: " + self.label,
+            description="This happened on "
+            + self.date.isoformat()
+            + " for "
+            + str(self.duration.seconds)
+            + " seconds. Download the recording at the link",
+            author="Your dog",
+            link=str(self.audio_path),
+        )
 
 
 class Recording:
@@ -20,11 +44,17 @@ class Recording:
         self._start_end: list[tuple[datetime, datetime | None]] = []
         self._time_barked: dict[str, timedelta] = {}
         self._output_folder = Path(output_folder).absolute()
-        self._activity_tracker: dict[datetime, str] = {}
+
+        self._activity_tracker: deque[Activity] = deque()
+        """Sorted (based on date) list of activity"""
 
         assert create_key == Recording.__create_key, (
             "Recording objects must be created using Recording.read"
         )
+
+    @property
+    def last_label(self) -> Activity | None:
+        return self._last_label
 
     @property
     def output_folder(self) -> Path:
@@ -37,27 +67,31 @@ class Recording:
 
     def daily_activities_formated(self) -> str:
         activities = ""
-        for a_datetime, activity in self.activity_tracker.items():
-            if a_datetime.date() == datetime.today().date():
-                activities += a_datetime.strftime("%H %M %S") + ": " + activity + "\n"
+        for activity in self.activity_tracker:
+            if activity.date.date() == datetime.today().date():
+                activities += (
+                    activity.date.strftime("%H %M %S") + ": " + activity.label + "\n"
+                )
         return activities
 
     def activities_formated(self) -> str:
         activities = ""
-        for a_datetime, activity in self.activity_tracker.items():
-            activities += a_datetime.isoformat() + "---" + activity + "\n"
+        for activity in self.activity_tracker:
+            activities += activity.date.isoformat() + "---" + activity.label + "\n"
         return activities[:-1]
 
     @property
-    def activity_tracker(self) -> dict[datetime, str]:
+    def activity_tracker(self) -> deque[Activity]:
         return self._activity_tracker
 
-    def add_activity(self, time: datetime, activity: str) -> None:
-        self._activity_tracker[time] = activity
+    def add_activity(self, activity: Activity) -> None:
+        self._activity_tracker.appendleft(activity)
+        self._last_label = activity
         self.save()
 
     def clear_activity(self) -> None:
-        self._activity_tracker = {}
+        self._activity_tracker = deque()
+        self._last_label = None
         self.save()
 
     @property
@@ -118,7 +152,13 @@ class Recording:
         for el in recording.start_end:
             if el not in self.start_end:
                 self.start_end.append(el)
-        self._activity_tracker = recording.activity_tracker | self._activity_tracker
+        self._activity_tracker = recording.activity_tracker + self._activity_tracker
+        self._activity_tracker = deque(
+            sorted(
+                self._activity_tracker, key=lambda activity: activity.date, reverse=True
+            )
+        )
+
         self._time_barked = recording.all_time_barked | self._time_barked
 
     @classmethod
@@ -141,3 +181,27 @@ class Recording:
             state.merge(old_state)
 
         return state
+
+    @property
+    def feed_data(self) -> dict[str, Any]:
+        items = []
+        for activity in self._activity_tracker:
+            print("Date", activity.date.isoformat())
+            items.append(activity.to_rss_feed_item())
+        return {
+            "title": "Bark monitor",
+            "link": "http://www.bark.malcolmmielle.phd/",
+            "description": "Is watson barking.",
+            "language": "en-us",
+            # "copyright": "Copyright 1997-2002 Dave Winer",
+            # "last_build_date": datetime.datetime(2002, 9, 30, 11, 0, 0),
+            # "docs": "http://backend.userland.com/rss",
+            "generator": "Bark Monitor Watson",
+            "category": [
+                Category(content="1765", attrs=CategoryAttrs(domain="Syndic8"))
+            ],
+            "managing_editor": "barkmonitor@malcolmmielle.phd",
+            "webmaster": "barkmonitor@malcolmmielle.phd",
+            "ttl": 40,
+            "item": items,
+        }

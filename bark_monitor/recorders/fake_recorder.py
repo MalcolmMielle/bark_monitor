@@ -1,8 +1,10 @@
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Callable
 
 from bark_monitor.base_sync import BaseSync
 from bark_monitor.recorders.base_recorder import BaseRecorder
+from bark_monitor.recorders.recording import Activity, Recording
 
 
 class FakeRecorder(BaseRecorder):
@@ -24,3 +26,17 @@ class FakeRecorder(BaseRecorder):
 
     def stop(self) -> None:
         self.running = False
+
+    def add_bark(self) -> None:
+        # increase time barked in state
+        recording = Recording.read(
+            output_folder=self.output_folder, sync_service=self._sync
+        )
+        recording.add_activity(
+            Activity(
+                label="Fake Bark",
+                date=datetime.now(),
+                duration=timedelta(seconds=1),
+                audio_path=Path("fake_audio.wav"),
+            ),
+        )

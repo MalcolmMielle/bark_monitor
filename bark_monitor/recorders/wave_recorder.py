@@ -13,7 +13,7 @@ import tensorflow as tf
 
 from bark_monitor.base_sync import BaseSync
 from bark_monitor.recorders.base_recorder import BaseRecorder
-from bark_monitor.recorders.recording import Recording
+from bark_monitor.recorders.recording import Activity, Recording
 
 
 class WaveRecorder(BaseRecorder):
@@ -57,6 +57,8 @@ class WaveRecorder(BaseRecorder):
             "Meow",
             "Hiss",
         ]
+
+        self._temp_activity: Activity | None = None
 
         super().__init__(
             sync=sync,
@@ -151,18 +153,32 @@ class WaveRecorder(BaseRecorder):
             )
             recording.add_time_barked(duration)
 
-            # Log in activity logger
-            recording.add_activity(datetime.now(), label)
+            if self._temp_activity is None:
+                self._temp_activity = Activity(
+                    label=label,
+                    date=datetime.now(),
+                    duration=duration,
+                    audio_path=Path(""),
+                )
+            else:
+                self._temp_activity.duration += duration
 
         elif len(self._frames) > 0:
             recording = Recording.read(self.output_folder, sync_service=self._sync)
             label = ""
             time = None
-            for key in recording.activity_tracker:
-                if time is None or time < key:
-                    time = key
-                    label = recording.activity_tracker[key]
-            self._save_recording(self._frames, label)
+            for activity in recording.activity_tracker:
+                if time is None or time < activity.date:
+                    time = activity.date
+                    label = activity.label
+            audio_path = self._save_recording(self._frames, label)
+
+            # Update activity and save to the recodings
+            assert self._temp_activity is not None
+            self._temp_activity.audio_path = audio_path
+
+            recording.add_activity(self._temp_activity)
+
             self._frames = []
 
         try:

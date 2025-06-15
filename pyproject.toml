@@ -26,6 +26,7 @@ dependencies = [
   "fastapi[standard]>=0.115.12",
   "uvicorn[standard]>=0.34.3",
   "nc-py-api>=0.20.2",
+  "fastapi-rss>=0.3.0",
 ]
 keywords = [
   "bark",

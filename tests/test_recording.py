@@ -6,7 +6,7 @@ from unittest import mock
 import jsonpickle
 
 from bark_monitor.google_sync import GoogleSync
-from bark_monitor.recorders.recording import Recording
+from bark_monitor.recorders.recording import Activity, Recording
 
 
 class TestRecording(unittest.TestCase):
@@ -49,20 +49,35 @@ class TestRecording(unittest.TestCase):
         recording = Recording.read(Path("tests/data"), sync_service=sync_service)
         self.assertEqual(len(recording.activity_tracker), 0)
         time = datetime(year=2023, month=1, day=1)
-        recording.add_activity(time, "test activity")
-        key = list(recording.activity_tracker.keys())[0]
-        self.assertEqual(key, time)
+        recording.add_activity(
+            Activity(
+                date=time,
+                label="test activity",
+                duration=timedelta(0),
+                audio_path=Path(""),
+            )
+        )
+        self.assertEqual(recording.activity_tracker[0].date, time)
 
         recording = Recording.read(Path("tests/data"), sync_service=sync_service)
-        key = list(recording.activity_tracker.keys())[0]
-        self.assertEqual(key, time)
+        self.assertEqual(recording.activity_tracker[0].date, time)
 
-        time = datetime(year=2023, month=1, day=2)
-        recording.add_activity(time, "test activity")
+        time_second = datetime(year=2023, month=1, day=2)
+        recording.add_activity(
+            Activity(
+                date=time_second,
+                label="test activity",
+                duration=timedelta(0),
+                audio_path=Path(""),
+            )
+        )
         self.assertEqual(len(recording.activity_tracker), 2)
+        self.assertEqual(recording.activity_tracker[0].date, time_second)
 
         recording = Recording.read(Path("tests/data"), sync_service=sync_service)
         self.assertEqual(len(recording.activity_tracker), 2)
+        self.assertEqual(recording.activity_tracker[0].date, time_second)
+        self.assertEqual(recording.activity_tracker[1].date, time)
 
     @mock.patch.object(Recording, "save", return_value="None")
     def test_merge(self, _: Recording) -> None:

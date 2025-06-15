@@ -71,3 +71,8 @@ class Parameters:
             lines = file.read()
             parameters: Parameters = jsonpickle.decode(lines)  # type: ignore
         return parameters
+
+
+@dataclass(kw_only=True)
+class WebServerParameters(Parameters):
+    server_url: str = "127.0.0.1"

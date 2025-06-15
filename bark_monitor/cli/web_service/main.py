@@ -1,22 +1,17 @@
 import sys
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 import tyro
-from fastapi import FastAPI
+import uvicorn
 
 from bark_monitor import logger
-from bark_monitor.cli.get_param import Parameters
+from bark_monitor.cli.get_param import WebServerParameters
 from bark_monitor.cli.web_service.fastapi_server import fasdtapi_webver
 from bark_monitor.next_cloud_sync import NextCloudSync
-from bark_monitor.recorders.base_recorder import BaseRecorder
 from bark_monitor.recorders.yamnet_recorder import YamnetRecorder
 
-recorder: dict[str, BaseRecorder] = {}
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+def main():
     logger.warning(
         "\n\n\n/*************\nIMPORTANT: If using the snap make sure to plug all the"
         " available slots with "
@@ -29,11 +24,11 @@ async def lifespan(app: FastAPI):
             "Either load a config file by using --config-file followed by the path to"
             + "the file or create a new parameter set by using: \n"
         )
-        parameters = tyro.cli(Parameters)
+        parameters = tyro.cli(WebServerParameters)
     if sys.argv[1] == "--config-file":
-        parameters = Parameters.read(Path(sys.argv[4]))
+        parameters = WebServerParameters.read(Path(sys.argv[2]))
     else:
-        parameters = tyro.cli(Parameters)
+        parameters = tyro.cli(WebServerParameters)
 
     assert parameters.nextcloud_parameters is not None
     sync_service = NextCloudSync(
@@ -42,7 +37,7 @@ async def lifespan(app: FastAPI):
         passwd=parameters.nextcloud_parameters.passwd,
     )
 
-    recorder["yamnet"] = YamnetRecorder(
+    recorder = YamnetRecorder(
         sync=sync_service,
         output_folder=parameters.output_folder,
         sampling_time_bark_seconds=parameters.sampling_time_bark_seconds,
@@ -50,11 +45,9 @@ async def lifespan(app: FastAPI):
         framerate=parameters.microphone_framerate,
     )
 
-    yield
-
-
-def main():
-    fasdtapi_webver(lifespan=lifespan, recorder=recorder)
+    app = fasdtapi_webver(recorder=recorder)
+    assert parameters is not None
+    uvicorn.run(app, host=parameters.server_url, port=8000)
 
 
 if __name__ == "__main__":

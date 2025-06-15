@@ -1,9 +1,8 @@
-from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+import tyro
+import uvicorn
 
-from bark_monitor import logger
 from bark_monitor.cli.web_service.fastapi_server import fasdtapi_webver
 from bark_monitor.fake_sync import FakeSync
 from bark_monitor.recorders.base_recorder import BaseRecorder
@@ -12,29 +11,21 @@ from bark_monitor.recorders.fake_recorder import FakeRecorder
 recorder: dict[str, BaseRecorder] = {}
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.warning(
-        "\n\n\n/*************\nIMPORTANT: If using the snap make sure to plug all the"
-        " available slots with "
-        "`sudo snap connect bark-monitor:XXX`.\n"
-        "See available slots with `snap connections bark-monitor`\n/*************\n\n\n"
-    )
-
+def main(server_url: str = "127.0.0.1"):
     sync_service = FakeSync()
-
-    recorder["yamnet"] = FakeRecorder(
+    recorder = FakeRecorder(
         sync=sync_service,
         output_folder=Path(""),
         framerate=0,
     )
+    app = fasdtapi_webver(recorder=recorder)
 
-    yield
+    @app.post("/trigger_fake_bark")
+    async def fake_bark() -> None:
+        recorder.add_bark()
 
-
-def main():
-    fasdtapi_webver(lifespan=lifespan, recorder=recorder)
+    uvicorn.run(app, host=server_url, port=8000)
 
 
 if __name__ == "__main__":
-    main()
+    tyro.cli(main)
