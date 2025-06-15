@@ -15,7 +15,7 @@ from bark_monitor.recorders.recording import Recording
 def main() -> None:
     if sys.argv[1] == "--help":
         print(
-            "Either load a config file by using --config-file followed by the path to"
+            "\nEither load a config file by using --config-file followed by the path to"
             + "the file or create a new parameter set by using: \n"
         )
         parameters = tyro.cli(RSSParameters)
@@ -47,4 +47,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    tyro.cli(main)
+    main()
