@@ -31,8 +31,8 @@ class Activity:
             + " for "
             + str(self.duration.seconds)
             + " seconds. Download the recording at the link",
-            author="Your dog",
-            link=str(self.audio_path),
+            author="god@malcolmmielle.phd",
+            link="http://www.bark.malcolmmielle.phd/",
         )
 
 
@@ -204,7 +204,6 @@ class Recording:
                 Category(content="1765", attrs=CategoryAttrs(domain="Syndic8"))
             ],
             "managing_editor": "barkmonitor@malcolmmielle.phd",
-            "webmaster": "barkmonitor@malcolmmielle.phd",
-            "ttl": 40,
+            "ttl": 1,
             "item": items,
         }
