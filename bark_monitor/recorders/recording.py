@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import jsonpickle
-from fastapi_rss import GUID, Category, CategoryAttrs, GUIDAttrs, Item
+from fastapi_rss import GUID, Category, CategoryAttrs, Item
 
 from bark_monitor.google_sync import BaseSync
 
@@ -22,9 +22,10 @@ class Activity:
         self.uid = str(uuid.uuid4())
 
     def to_rss_feed_item(self) -> Item:
-        attr = GUIDAttrs(is_permalink=False)
         return Item(
-            guid=GUID(content=self.uid, attrs=attr),
+            # Swicth to ispermalink false when issue is resolved
+            # https://github.com/sbordeyne/fastapi_rss/issues/13
+            guid=GUID(content="http://www.bark.example.com/" + self.uid),
             title="I barked: " + self.label,
             description="This happened on "
             + self.date.isoformat()
@@ -32,7 +33,7 @@ class Activity:
             + str(self.duration.seconds)
             + " seconds. Download the recording at the link",
             author="dog@malcolmmielle.phd",
-            link="http://www.bark.malcolmmielle.phd/",
+            link="http://www.bark.example.com/",
         )
 
 
@@ -203,7 +204,7 @@ class Recording:
             "category": [
                 Category(content="1765", attrs=CategoryAttrs(domain="Syndic8"))
             ],
-            "managing_editor": "barkmonitor@malcolmmielle.phd",
+            "managing_editor": "barkmonitor@example.com",
             "ttl": 1,
             "item": items,
         }
