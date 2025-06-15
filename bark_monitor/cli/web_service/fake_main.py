@@ -12,11 +12,11 @@ from bark_monitor.recorders.fake_recorder import FakeRecorder
 recorder: dict[str, BaseRecorder] = {}
 
 
-def main(server_url: str = "127.0.0.1"):
+def main(output_folder: Path, server_url: str = "127.0.0.1") -> None:
     sync_service = FakeSync()
     recorder = FakeRecorder(
         sync=sync_service,
-        output_folder=Path(""),
+        output_folder=output_folder,
         framerate=0,
     )
     app = FastAPI()

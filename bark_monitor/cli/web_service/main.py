@@ -4,6 +4,7 @@ from pathlib import Path
 import tyro
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from bark_monitor import logger
 from bark_monitor.cli.web_service.fastapi_server import fasdtapi_webserver
@@ -45,7 +46,18 @@ def main():
         http_url=parameters.thingsboard_uri,
         framerate=parameters.microphone_framerate,
     )
+
     app = FastAPI()
+
+    assert parameters.other_origins is not None
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=parameters.other_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     fasdtapi_webserver(app=app, recorder=recorder)
     assert parameters is not None
     uvicorn.run(app, host=parameters.server_url, port=8000)

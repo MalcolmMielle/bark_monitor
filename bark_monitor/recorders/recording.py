@@ -1,3 +1,4 @@
+import uuid
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -5,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import jsonpickle
-from fastapi_rss import Category, CategoryAttrs, Item
+from fastapi_rss import GUID, Category, CategoryAttrs, Item
 
 from bark_monitor.google_sync import BaseSync
 
@@ -19,6 +20,7 @@ class Activity:
 
     def to_rss_feed_item(self) -> Item:
         return Item(
+            guid=GUID(content=str(uuid.uuid4())),
             title="I barked: " + self.label,
             description="This happened on "
             + self.date.isoformat()
@@ -193,9 +195,6 @@ class Recording:
             "link": "http://www.bark.malcolmmielle.phd/",
             "description": "Is watson barking.",
             "language": "en-us",
-            # "copyright": "Copyright 1997-2002 Dave Winer",
-            # "last_build_date": datetime.datetime(2002, 9, 30, 11, 0, 0),
-            # "docs": "http://backend.userland.com/rss",
             "generator": "Bark Monitor Watson",
             "category": [
                 Category(content="1765", attrs=CategoryAttrs(domain="Syndic8"))
