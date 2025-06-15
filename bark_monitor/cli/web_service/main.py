@@ -3,10 +3,12 @@ from pathlib import Path
 
 import tyro
 import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from bark_monitor import logger
-from bark_monitor.cli.get_param import WebServerParameters
-from bark_monitor.cli.web_service.fastapi_server import fasdtapi_webver
+from bark_monitor.cli.web_service.fastapi_server import fasdtapi_webserver
+from bark_monitor.cli.web_service.web_server_param import WebServerParameters
 from bark_monitor.next_cloud_sync import NextCloudSync
 from bark_monitor.recorders.yamnet_recorder import YamnetRecorder
 
@@ -45,7 +47,18 @@ def main():
         framerate=parameters.microphone_framerate,
     )
 
-    app = fasdtapi_webver(recorder=recorder)
+    app = FastAPI()
+
+    assert parameters.other_origins is not None
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=parameters.other_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    fasdtapi_webserver(app=app, recorder=recorder)
     assert parameters is not None
     uvicorn.run(app, host=parameters.server_url, port=8000)
 

@@ -1,3 +1,4 @@
+import uuid
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -5,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import jsonpickle
-from fastapi_rss import Category, CategoryAttrs, Item
+from fastapi_rss import GUID, Category, CategoryAttrs, Item
 
 from bark_monitor.google_sync import BaseSync
 
@@ -17,16 +18,22 @@ class Activity:
     duration: timedelta
     audio_path: Path
 
+    def __post_init__(self) -> None:
+        self.uid = str(uuid.uuid4())
+
     def to_rss_feed_item(self) -> Item:
         return Item(
+            # Swicth to ispermalink false when issue is resolved
+            # https://github.com/sbordeyne/fastapi_rss/issues/13
+            guid=GUID(content="http://www.bark.example.com/" + self.uid),
             title="I barked: " + self.label,
             description="This happened on "
             + self.date.isoformat()
             + " for "
             + str(self.duration.seconds)
             + " seconds. Download the recording at the link",
-            author="Your dog",
-            link=str(self.audio_path),
+            author="dog@malcolmmielle.phd",
+            link="http://www.bark.example.com/",
         )
 
 
@@ -193,15 +200,12 @@ class Recording:
             "link": "http://www.bark.malcolmmielle.phd/",
             "description": "Is watson barking.",
             "language": "en-us",
-            # "copyright": "Copyright 1997-2002 Dave Winer",
-            # "last_build_date": datetime.datetime(2002, 9, 30, 11, 0, 0),
-            # "docs": "http://backend.userland.com/rss",
             "generator": "Bark Monitor Watson",
+            "last_build_date": datetime.now(),
             "category": [
                 Category(content="1765", attrs=CategoryAttrs(domain="Syndic8"))
             ],
-            "managing_editor": "barkmonitor@malcolmmielle.phd",
-            "webmaster": "barkmonitor@malcolmmielle.phd",
-            "ttl": 40,
+            "managing_editor": "barkmonitor@example.com",
+            "ttl": 1,
             "item": items,
         }
