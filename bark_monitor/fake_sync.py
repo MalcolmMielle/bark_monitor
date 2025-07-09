@@ -12,7 +12,7 @@ class FakeSync(BaseSync):
         pass
 
     def status(self) -> str:
-        "Not connected"
+        return "Not connected"
 
     def login(self) -> tuple[bool, str]:
         raise NotImplementedError("login not implemented")

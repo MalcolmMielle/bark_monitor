@@ -1,5 +1,4 @@
 from datetime import timedelta
-from enum import Enum
 from pathlib import Path
 
 import requests
@@ -13,42 +12,14 @@ from telegram.ext import (
     filters,
 )
 
+from bark_monitor.bots.very_bark_bot import VeryBarkBot
 from bark_monitor.chats import Chats
 from bark_monitor.google_sync import BaseSync
+from bark_monitor.recorders.base_recorder import BaseRecorder
 from bark_monitor.recorders.recording import Recording
 
 
-class Commands(Enum):
-    help = "Display a help message"
-    activity = "Display the day activity of the pets"
-    start = "Start the recorder"
-    stop = "Stop the recorder"
-    pause = "Pause the recorder"
-    unpause = "Unpause the recorder"
-    bark_level = (
-        "If using amplitude base recording, show the threshold to detect a bark"
-    )
-    register = "Register a new user"
-    status = "Status of the recorder"
-    login = "Log in to google drive"
-    audio = (
-        "Send an audio file based on file name. If used without a file name, it "
-        + "will list the available files"
-    )
-
-    last = "Download last recording"
-
-    @staticmethod
-    def help_message() -> str:
-        msg = ""
-        for e in Commands:
-            msg += e.name + " - " + e.value + "\n"
-        return msg
-
-
-class VeryBarkTelegramBot:
-    _recorder: "BaseRecorder"  # noqa: F821
-
+class VeryBarkTelegramBot(VeryBarkBot):
     def __init__(
         self,
         api_key: str,
@@ -117,8 +88,8 @@ class VeryBarkTelegramBot:
         self._accept_new_users = accept_new_users
         self._sync = sync
 
-    def start(self, recorder: "BaseRecorder") -> None:
-        self._recorder = recorder
+    def start(self, recorder: BaseRecorder) -> None:
+        super().start(recorder=recorder)
 
         chats = Chats.read(self._config_folder)
         for chat in chats.chats:
@@ -158,6 +129,7 @@ class VeryBarkTelegramBot:
             return
 
         self._recorder.record()
+
         for chat in chats.chats:
             await self._application.bot.send_message(
                 chat_id=chat,
@@ -181,10 +153,6 @@ class VeryBarkTelegramBot:
                 text="Recorder stopped",
             )
 
-    def _stop_recorder_sync(self) -> None:
-        if self._recorder.running is True:
-            self._recorder.stop()
-
     async def register(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
@@ -196,7 +164,7 @@ class VeryBarkTelegramBot:
             )
             return
         chats = Chats.read(self._config_folder)
-        chats.add(update.effective_chat)
+        chats.add(update.effective_chat.id)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="I will now let you know when Watson is barking!",
@@ -364,7 +332,7 @@ class VeryBarkTelegramBot:
         if not await self._is_registered(update.effective_chat.id, context):
             return
 
-        help_message = Commands.help_message()
+        help_message = VeryBarkBot.Commands.help_message()
         await self._application.bot.send_message(
             chat_id=update.effective_chat.id,
             text=help_message,

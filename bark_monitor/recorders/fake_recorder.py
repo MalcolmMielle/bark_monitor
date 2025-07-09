@@ -40,3 +40,5 @@ class FakeRecorder(BaseRecorder):
                 audio_path=Path("fake_audio.wav"),
             ),
         )
+        if self.send_text_callback is not None:
+            self.send_text_callback("Fake Bark")

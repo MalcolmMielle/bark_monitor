@@ -6,6 +6,13 @@ import jsonpickle
 
 
 @dataclass(kw_only=True)
+class MatrixParameters:
+    homeserver: str
+    user_id: str
+    password: str
+
+
+@dataclass(kw_only=True)
 class NextCloudParameters:
     server: str
     user: str
@@ -41,6 +48,8 @@ class Parameters:
     sampling_time_bark_seconds: int = 1
     accept_new_users: bool = False
     google_creds: str | None = None
+
+    matrix_parameters: MatrixParameters | None = None
 
     nextcloud_parameters: NextCloudParameters | None = None
     """Nextcloud parameters"""

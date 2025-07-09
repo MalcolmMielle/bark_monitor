@@ -1,14 +1,13 @@
 from pathlib import Path
 
 import jsonpickle
-from telegram import Chat
 
 
 class Chats:
     __create_key = object()
 
     def __init__(self, create_key, config_folder: Path) -> None:
-        self._chats: set[int] = set()
+        self._chats: set[int | str] = set()
         self._config_folder = config_folder.absolute()
 
         assert create_key == Chats.__create_key, (
@@ -16,12 +15,12 @@ class Chats:
         )
 
     @property
-    def chats(self) -> set[int]:
+    def chats(self) -> set[int | str]:
         return self._chats
 
-    def add(self, chat: Chat) -> None:
+    def add(self, chat: int | str) -> None:
         # Comment to not add new users to the bot
-        self._chats.add(chat.id)
+        self._chats.add(chat)
         self.save()
 
     @staticmethod

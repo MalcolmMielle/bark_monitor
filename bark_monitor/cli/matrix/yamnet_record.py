@@ -4,7 +4,7 @@ from pathlib import Path
 import tyro
 
 from bark_monitor import logger
-from bark_monitor.bots.very_bark_telegram_bot import VeryBarkTelegramBot
+from bark_monitor.bots.very_bark_matrix_bot import VeryBarkMatrixBot
 from bark_monitor.cli.get_param import Parameters
 from bark_monitor.google_sync import GoogleSync
 from bark_monitor.next_cloud_sync import NextCloudSync
@@ -44,11 +44,13 @@ def main():
     if parameters.api_key is None:
         raise RuntimeError("Please provide a Telegram bot API key")
 
-    bot = VeryBarkTelegramBot(
+    assert parameters.matrix_parameters is not None
+    bot = VeryBarkMatrixBot(
         sync=sync_service,
-        api_key=parameters.api_key,
         config_folder=parameters.config_folder,
-        accept_new_users=parameters.accept_new_users,
+        homeserver=parameters.matrix_parameters.homeserver,
+        user_id=parameters.matrix_parameters.user_id,
+        password=parameters.matrix_parameters.password,
     )
 
     recorder = YamnetRecorder(

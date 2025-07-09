@@ -4,11 +4,11 @@ from pathlib import Path
 import tyro
 
 from bark_monitor import logger
+from bark_monitor.bots.very_bark_telegram_bot import VeryBarkTelegramBot
 from bark_monitor.cli.get_param import Parameters
 from bark_monitor.google_sync import GoogleSync
 from bark_monitor.next_cloud_sync import NextCloudSync
 from bark_monitor.recorders.yamnet_lite_recorder import YamnetLiteRecorder
-from bark_monitor.very_bark_bot import VeryBarkTelegramBot
 
 
 def main():

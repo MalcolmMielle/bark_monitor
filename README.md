@@ -27,7 +27,7 @@ The bark monitor will:
 
 * Record your dog while you are gone.
   The recordings are saved in a folder to enable you to really show that neighbor they are full of shit.
-* Monitor its barking real time and send you notification through a Telegram bot when your neighbor drives the dog crazy and they barks.
+* Monitor its barking real time and send you notification through a Matrix bot/Telegram bot/RSS feed when your neighbor drives the dog crazy and they barks.
   Detection of the bark can be done using the [Yamnet](https://www.tensorflow.org/hub/tutorials/yamnet) neural network implemented in tensorflow, or the amplitude of the signal.
   Using Yamnet, cats are also tracked ;).
 
