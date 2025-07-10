@@ -1,0 +1,1 @@
+Build the documentation with `mkdocs build` and move the content of `site` to the root folder

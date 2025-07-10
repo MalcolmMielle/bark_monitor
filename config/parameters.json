@@ -1,0 +1,46 @@
+{
+    "py/object": "bark_monitor.cli.get_param.Parameters",
+    "output_folder": {
+        "py/reduce": [
+            {
+                "py/type": "pathlib.PosixPath"
+            },
+            {
+                "py/tuple": [
+                    "outputs"
+                ]
+            }
+        ]
+    },
+    "config_folder": {
+        "py/reduce": [
+            {
+                "py/type": "pathlib.PosixPath"
+            },
+            {
+                "py/tuple": [
+                    "config"
+                ]
+            }
+        ]
+    },
+    "api_key": null,
+    "config_file": null,
+    "microphone_framerate": 16000,
+    "sampling_time_bark_seconds": 1,
+    "accept_new_users": false,
+    "google_creds": null,
+    "matrix_parameters": {
+        "py/object": "bark_monitor.cli.get_param.MatrixParameters",
+        "homeserver": "https://matrix.org",
+        "user_id": "bark_monitor",
+        "password": "Waged1-Bluish0-Creole4-Tank8"
+    },
+    "nextcloud_parameters": {
+        "py/object": "bark_monitor.cli.get_param.NextCloudParameters",
+        "server": "https://cloud.mielle.dev",
+        "user": "MalcolmMielle",
+        "passwd": "M5Saj-ddA5H-mpP5N-XLimt-bbnFS"
+    },
+    "thingsboard_parameters": null
+}

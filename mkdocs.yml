@@ -5,10 +5,14 @@ nav:
     - Install:
         - 'Install python program': 'install.md'
         - 'Raspberry pi': 'raspberrypi.md'
-    - Telegram bot: telegram_bot.md
+    - Bots:
+      - Matrix bot: matrix_bot.md
+      - Telegram bot: telegram_bot.md
     - Record your dog: record.md
     - Thingsboard: thingsboard.md
-    - Google drive sync: google_sync.md
+    - Sync:
+      - Nextcloud Sync: nextcloud.md
+      - Google drive sync: google_sync.md
 theme:
   name: material
   palette:

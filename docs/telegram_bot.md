@@ -1,5 +1,8 @@
 # Telegram bot
 
+> The telegram bot will not be maintained in the long run.
+> Use the [Matrix bot](matrix_bot.md) instead.
+
 ## Create
 
 create a [Telegram bot](https://www.rowy.io/blog/create-telegram-bot) and obtain the api key to input in the [config file](record.md).
