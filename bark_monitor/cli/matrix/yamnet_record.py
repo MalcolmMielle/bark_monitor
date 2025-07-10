@@ -26,7 +26,7 @@ def main():
         )
         parameters = tyro.cli(Parameters)
     if sys.argv[1] == "--config-file":
-        parameters = Parameters.read(Path(sys.argv[4]))
+        parameters = Parameters.read(Path(sys.argv[2]))
     else:
         parameters = tyro.cli(Parameters)
 
@@ -40,9 +40,6 @@ def main():
         sync_service = GoogleSync(credential_file=parameters.google_creds)
     else:
         raise RuntimeError("Please provide either google_creds or nextcloud_parameters")
-
-    if parameters.api_key is None:
-        raise RuntimeError("Please provide a Telegram bot API key")
 
     assert parameters.matrix_parameters is not None
     bot = VeryBarkMatrixBot(

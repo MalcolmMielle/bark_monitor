@@ -8,3 +8,5 @@ client_secrets.json
 /config.json
 
 __pycache__/
+
+store/*

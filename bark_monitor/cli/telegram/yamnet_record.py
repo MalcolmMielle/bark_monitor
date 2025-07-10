@@ -26,7 +26,7 @@ def main():
         )
         parameters = tyro.cli(Parameters)
     if sys.argv[1] == "--config-file":
-        parameters = Parameters.read(Path(sys.argv[4]))
+        parameters = Parameters.read(Path(sys.argv[2]))
     else:
         parameters = tyro.cli(Parameters)
 
