@@ -607,6 +607,21 @@
 
 
 <h1 id="nextcloud">Nextcloud</h1>
+<p>Nextcloud sync is the recommanded way to sync and save your data.</p>
+<p>Add the following parameters in you configuration json file:</p>
+<pre><code class="language-json">&quot;nextcloud_parameters&quot;: {
+    &quot;py/object&quot;: &quot;bark_monitor.cli.get_param.NextCloudParameters&quot;,
+    &quot;server&quot;: &quot;https://server.url&quot;,
+    &quot;user&quot;: &quot;userName&quot;,
+    &quot;passwd&quot;: &quot;password&quot;
+},
+</code></pre>
+<p>And sync should be automatically enabled.</p>
+<blockquote>
+<p>Be carfeul that, audio recordings also will be saved but the code will <strong>erase</strong> current audio saved on the drive!
+There is no "merging" ability to save the audio since they are simply uploaded as a zip folder.
+So make sure to save previous audio file if you start a new bark monitor from scratch or the previuos recordings will be erased.</p>
+</blockquote>
 
 
 

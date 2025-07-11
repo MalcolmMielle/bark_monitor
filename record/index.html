@@ -703,26 +703,72 @@
 <h2 id="set-up-the-configuration-file">Set up the configuration file</h2>
 <p>The bark monitor will read the configuration from a json file.
 By default, it will read the file <code>config.json</code> but use the option <code>config-file</code> to point to any path.</p>
-<p>The config file should look like this at minimum:</p>
+<p>The config file should look like this:</p>
 <pre><code class="language-json">{
-  &quot;api_key&quot;: &quot;you api key to the telegram bot&quot;,
-  &quot;output_folder&quot;: &quot;where to save the recordings&quot;,
-  &quot;config_folder&quot;: &quot;where to save the telegram bot configuration&quot;
+    &quot;py/object&quot;: &quot;bark_monitor.cli.get_param.Parameters&quot;,
+    &quot;output_folder&quot;: {
+        &quot;py/reduce&quot;: [
+            {
+                &quot;py/type&quot;: &quot;pathlib.PosixPath&quot;
+            },
+            {
+                &quot;py/tuple&quot;: [
+                    &quot;outputs&quot;
+                ]
+            }
+        ]
+    },
+    &quot;config_folder&quot;: {
+        &quot;py/reduce&quot;: [
+            {
+                &quot;py/type&quot;: &quot;pathlib.PosixPath&quot;
+            },
+            {
+                &quot;py/tuple&quot;: [
+                    &quot;config&quot;
+                ]
+            }
+        ]
+    },
+    &quot;api_key&quot;: null,
+    &quot;config_file&quot;: null,
+    &quot;microphone_framerate&quot;: 16000,
+    &quot;sampling_time_bark_seconds&quot;: 1,
+    &quot;accept_new_users&quot;: false,
+    &quot;google_creds&quot;: null,
+    &quot;matrix_parameters&quot;: {
+        &quot;py/object&quot;: &quot;bark_monitor.cli.get_param.MatrixParameters&quot;,
+        &quot;homeserver&quot;: &quot;https://HOMESERVER&quot;,
+        &quot;user_id&quot;: &quot;USER_ID&quot;,
+        &quot;password&quot;: &quot;PASSWORD&quot;
+    },
+    &quot;nextcloud_parameters&quot;: {
+        &quot;py/object&quot;: &quot;bark_monitor.cli.get_param.NextCloudParameters&quot;,
+        &quot;server&quot;: &quot;https://SERVER.URL&quot;,
+        &quot;user&quot;: &quot;USERNAME&quot;,
+        &quot;passwd&quot;: &quot;PASSWORD&quot;
+    },
+    &quot;thingsboard_parameters&quot;: null
 }
-
 </code></pre>
-<p>More options are available in the recorder's programs found in <code>bark_monitor/cli</code>.</p>
+<blockquote>
+<p>The json has the <code>py/object</code> attributes because it is a jsonpickle export.</p>
+</blockquote>
 <h2 id="register-users">Register users</h2>
 <p>If it is your first time launching the bark monitor, the first step is to register your user.
 Users can only be registered if the monitor is launched in register mode: <code>bark-monitor --accept-new-users</code>.
 Once the monitor is launched, open your telegram bot, and send <code>/register</code>.
 You should now be register to this machine, and able receive notifications and control it.</p>
 <h2 id="launch-the-recordings">Launch the recordings</h2>
-<p>Launching the bark monitor is as simple as entering <code>bark-monitor --config-file &lt;path to config file&gt;</code>.
-If the set-up is correct you should receive a notification when the monitor is ready the record.
+<p>Launching the bark monitor is as simple as entering <code>bark-monitor --config-file &lt;path to config file&gt;</code>.</p>
+<blockquote>
+<p>As of now, <code>bark-monitor --config-file &lt;path to config file&gt;</code> launches the telegram bot.
+However, the matrix bot is recommanded and how to launch it is shown in <a href="../matrix_bot/">its documentation</a>.</p>
+</blockquote>
+<p>If the set-up is correct you should receive a notification when the monitor is ready the record.
 To start a recording send <code>/start</code> to the bot.
 To stop it send <code>/stop</code>.
-See the <a href="../telegram_bot/">telegram bot documentation</a> for more details on what the bot can do.</p>
+See the <a href="../matrix_bot/">matrix</a> or <a href="../telegram_bot/">telegram bot documentation</a> for more details on what the bots can do.</p>
 <p>If you are on Raspberry Pi or other device, consider using the <a href="https://tfhub.dev/google/lite-model/yamnet/classification/tflite/1">TFlite version of Yamnet</a> by using <code>bark-monitor-lite --config-file &lt;path to config file&gt;</code> instead.</p>
 
 

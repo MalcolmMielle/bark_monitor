@@ -37,7 +37,8 @@ On Ubuntu:
 
 ```bash
 sudo apt install build-essential
-sudo apt-get install portaudio19-dev
+sudo apt install portaudio19-dev
+sudo apt install libolm-dev
 ```
 
 Install using [UV](https://docs.astral.sh/uv/) on python 3.12.

@@ -7,18 +7,58 @@ Once you have [installed](install.md) the program and created a [telegram bot](t
 The bark monitor will read the configuration from a json file.
 By default, it will read the file `config.json` but use the option `config-file` to point to any path.
 
-The config file should look like this at minimum:
+The config file should look like this:
 
 ```json
 {
-  "api_key": "you api key to the telegram bot",
-  "output_folder": "where to save the recordings",
-  "config_folder": "where to save the telegram bot configuration"
+    "py/object": "bark_monitor.cli.get_param.Parameters",
+    "output_folder": {
+        "py/reduce": [
+            {
+                "py/type": "pathlib.PosixPath"
+            },
+            {
+                "py/tuple": [
+                    "outputs"
+                ]
+            }
+        ]
+    },
+    "config_folder": {
+        "py/reduce": [
+            {
+                "py/type": "pathlib.PosixPath"
+            },
+            {
+                "py/tuple": [
+                    "config"
+                ]
+            }
+        ]
+    },
+    "api_key": null,
+    "config_file": null,
+    "microphone_framerate": 16000,
+    "sampling_time_bark_seconds": 1,
+    "accept_new_users": false,
+    "google_creds": null,
+    "matrix_parameters": {
+        "py/object": "bark_monitor.cli.get_param.MatrixParameters",
+        "homeserver": "https://HOMESERVER",
+        "user_id": "USER_ID",
+        "password": "PASSWORD"
+    },
+    "nextcloud_parameters": {
+        "py/object": "bark_monitor.cli.get_param.NextCloudParameters",
+        "server": "https://SERVER.URL",
+        "user": "USERNAME",
+        "passwd": "PASSWORD"
+    },
+    "thingsboard_parameters": null
 }
-
 ```
 
-More options are available in the recorder's programs found in `bark_monitor/cli`.
+> The json has the `py/object` attributes because it is a jsonpickle export.
 
 ## Register users
 
@@ -30,9 +70,13 @@ You should now be register to this machine, and able receive notifications and c
 ## Launch the recordings
 
 Launching the bark monitor is as simple as entering `bark-monitor --config-file <path to config file>`.
+
+> As of now, `bark-monitor --config-file <path to config file>` launches the telegram bot.
+> However, the matrix bot is recommanded and how to launch it is shown in [its documentation](matrix_bot.md).
+
 If the set-up is correct you should receive a notification when the monitor is ready the record.
 To start a recording send `/start` to the bot.
 To stop it send `/stop`.
-See the [telegram bot documentation](telegram_bot.md) for more details on what the bot can do.
+See the [matrix](matrix_bot.md) or [telegram bot documentation](telegram_bot.md) for more details on what the bots can do.
 
 If you are on Raspberry Pi or other device, consider using the [TFlite version of Yamnet](https://tfhub.dev/google/lite-model/yamnet/classification/tflite/1) by using `bark-monitor-lite --config-file <path to config file>` instead.

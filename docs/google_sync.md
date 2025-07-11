@@ -1,11 +1,13 @@
 # Sync with google drive
 
+> Using [NextCloud](nextcloud.md) instead.
+
 It is possible to save the recordings to google drive automatically although the feature is very experimental.
 
 When used, the config file of dog activities and recording time will be safe and "sync" with your google drive as a json.
 
 On the other hand, audio recordings also will be saved but the code will __erase__ current audio saved on the drive!
-There is "merging" ability to save the audio since they are simply uploaded as a zip folder.
+There is no "merging" ability to save the audio since they are simply uploaded as a zip folder.
 Contribution to make this system better are welcomed but it works for me so I won't change it myself :).
 
 ## Set up credentials

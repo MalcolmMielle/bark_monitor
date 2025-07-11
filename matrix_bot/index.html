@@ -607,7 +607,22 @@
 
 
 <h1 id="matrix-bot">Matrix bot</h1>
-<p>Matrix is a decentralyze messaging app.</p>
+<p>Matrix is a decentralyze messaging app.
+It can be used to control the bark monitor.
+The bot is bot is based on <a href="https://docs.nio-bot.dev/master/">nio-bot</a></p>
+<p>Follow the <a href="https://docs.nio-bot.dev/master/guides/001-getting-started/">get started</a> tutorial of nio-bot and do not forget to install <code>libolm</code> and <code>libmagic</code>.
+To work the matrix bot needs your homeserver, user name, and password.
+Sadly, it doesn't seem to work with the access token.</p>
+<p>An example of the Matrix bot section in the parameters would look like this:</p>
+<pre><code class="language-json">&quot;matrix_parameters&quot;: {
+    &quot;py/object&quot;: &quot;bark_monitor.cli.get_param.MatrixParameters&quot;,
+    &quot;homeserver&quot;: &quot;https://homeserver.org&quot;,
+    &quot;user_id&quot;: &quot;user_id&quot;, // Without the @ and the homeserver after
+    &quot;password&quot;: &quot;PASSWORD&quot;
+},
+</code></pre>
+<p>The matrix bot and the bark monitor can be started with <code>python bark_monitor/cli/matrix/yamnet_record.py --config-file path_to_config_file.json</code> or by typing the command with the arguments.</p>
+<p>Then by starting a conversation with the <code>user_id</code> (don't forget to accept the request on <code>user_id</code>'s side), you can get use the matrix bot.</p>
 
 
 
